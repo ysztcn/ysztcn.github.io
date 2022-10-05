@@ -262,7 +262,7 @@
 		"daoyanhou": "</p>",
 		"zhuyanqian": "主演：</span>",
 		"zhuyanhou": "</p>",
-		"juqingqian": "style=\"display: none;\">",
+		"juqingqian": "<span class=\"sketch content\">",
 		"juqinghou": "</span>",
 		"bfyshifouercijiequ": "0",
 		"bfyjiequqian": "空",
@@ -696,5 +696,6 @@
   "bflianjieqian": "href=\"",
   "bflianjiehou": "\""
 }
+
 	]
 }
