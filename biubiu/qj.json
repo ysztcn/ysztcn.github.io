@@ -1,4 +1,4 @@
-{//20220919
+{//20221020
 	"zhuyejiekou": [
 	 { "name": "影库(萝卜)","url":"https://yingkudy.com/lvdou_api.php/v1.vod"},
 	 { "name": "月儿影视", "url": "https://yue52.xyz/api.php/v1.vod" },
@@ -8,8 +8,8 @@
 	 { "name": "阿里影视", "url": "http://aliys.cn:90/api.php/v1.vod" },
 	 { "name": "QC影视", "url": "https://www.qcsvip.com/mogai_api.php/v1.vod" }
 	],
-	"zhujiexi": "",
-	"beiyongjiexi": "https://jx.xmflv.com/?url=",
+	"zhujiexi": "https://chaloli.cn/home/api?type=ys&uid=1&key=bcghijmortwFQTV578&url=#https://www.mtosz.com/erzi.php?url=#https://jx.parwix.com:4433/player/?url=#https://chaxun.truechat365.com/?url=#https://jx.m3u8.tv/jiexi/?url=#https://okjx.cc/?url=#http://api.wpsseo.cn/?v=",
+	"beiyongjiexi": "https://jx.xmflv.com/?url=#https://okjx.cc/?url=#https://www.mtosz.com/erzi.php?url=#https://play.fuqizhishi.com/juhe/API.php?appkey=caijijuhe220902&url=",
 	"dianshizhibo": "http://www.mikkk.xyz/bblive.txt",
 	"tiyuzhibo": "https://m.zhibo8.net",
 	"reci": "https://v.sogou.com",

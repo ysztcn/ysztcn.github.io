@@ -8,8 +8,8 @@
 	 { "name": "阿里影视", "url": "http://aliys.cn:90/api.php/v1.vod" },
 	 { "name": "QC影视", "url": "https://www.qcsvip.com/mogai_api.php/v1.vod" }
 	],
-	"zhujiexi": "",
-	"beiyongjiexi": "https://jx.xmflv.com/?url=",
+	"zhujiexi": "https://chaloli.cn/home/api?type=ys&uid=1&key=bcghijmortwFQTV578&url=#https://www.mtosz.com/erzi.php?url=#https://jx.parwix.com:4433/player/?url=#https://chaxun.truechat365.com/?url=#https://jx.m3u8.tv/jiexi/?url=#https://okjx.cc/?url=#http://api.wpsseo.cn/?v=",
+	"beiyongjiexi": "https://jx.xmflv.com/?url=#https://okjx.cc/?url=#https://www.mtosz.com/erzi.php?url=#https://play.fuqizhishi.com/juhe/API.php?appkey=caijijuhe220902&url=",
 	"dianshizhibo": "http://www.mikkk.xyz/bblive.txt",
 	"tiyuzhibo": "https://m.zhibo8.net",
 	"reci": "https://v.sogou.com",
@@ -45,62 +45,70 @@
 			"year": "全部$&lang=&year=#2022$&lang=&year=2022#2021$&lang=&year=2021#2020$&lang=&year=2020#2019$&lang=&year=2019#2018$&lang=&year=2018#2017$&lang=&year=2017#2016-2011$&lang=&year=2016#2010-2000$&lang=&year=2010#90年代$&lang=&year=90#80年代$&lang=&year=80#更早$&lang=&year=70" }
 	},
 	"zidingyi": [ 	
-{ "name": "剧白白",
-		  "url": "https://www.jubaibai.cc",
-		  "tihuan": "cnzz.com",
-		  "User": "空",
-		  "fenlei": "电视剧$/type/dianshiju-#电影$/type/dianying-#综艺$/type/zongyi-#动漫$/type/dongman-#纪录片$/type/jilupian-#动作片$/vodshow/id/dongzuopian/page/#喜剧片$/vodshow/id/xijupian/page/#爱情片$/vodshow/id/aiqingpian/page/#科幻片$/vodshow/id/kehuanpian/page/#恐怖片$/vodshow/id/kongbupian/page/#剧情片$/vodshow/id/juqingpian/page/#战争片$/vodshow/id/zhanzhengpian/page/#国产剧$/vodshow/id/guochanju/page/#港台剧$/vodshow/id/gangtaiju/page/#日韩剧$/vodshow/id/rihanju/page/#欧美剧$/vodshow/id/oumeiju/page/#其他剧$/vodshow/id/qitaju/page/",
-		  "houzhui": ".html",
-		  "shifouercijiequ": "0",
-		  "jiequqian": "空",
-		  "jiequhou": "空",
-		  "jiequshuzuqian": "class=\"stui-vodlist__box\"",
-		  "jiequshuzuhou": "</a>",
-		  "tupianqian": "original=\"",
-		  "tupianhou": "\"",
-		  "biaotiqian": "title=\"",
-		  "biaotihou": "\"",
-		  "lianjieqian": "href=\"",
-		  "lianjiehou": "\"",
-		  "sousuoqian": "/index.php/ajax/suggest?mid=1&wd=",
-		  "sousuohou": "&limit=500",
-		  "sousuohouzhui": "/vod/",
-		  "ssmoshi": "0",
-		  "sousuoshifouercijiequ": "0",
-		  "jspic": "pic",
-		  "jsname": "name",
-		  "jsid": "id",
-		  "ssjiequqian": "空",
-		  "ssjiequhou": "空",
-		  "ssjiequshuzuqian": "空",
-		  "ssjiequshuzuhou": "空",
-		  "sstupianqian": "空",
-		  "sstupianhou": "空",
-		  "ssbiaotiqian": "空",
-		  "ssbiaotihou": "空",
-		  "sslianjieqian": "空",
-		  "sslianjiehou": "空",
-		  "bfshifouercijiequ": "0",
-		  "bfjiequqian": "空",
-		  "bfjiequhou": "空",
-		  "bfjiequshuzuqian": "class=\"stui-content__playlist sort-list",
-		  "bfjiequshuzuhou": "</ul>",
-		  "zhuangtaiqian": "class=\"data hidden-xs\">类型：",
-		  "zhuangtaihou": "</p>",
-		  "daoyanqian": "class=\"data\">导演：",
-		  "daoyanhou": "</p>",
-		  "zhuyanqian": "class=\"data\">主演：",
-		  "zhuyanhou": "</p>",
-		  "juqingqian": "style=\"display: none;\">",
-		  "juqinghou": "</span>",
-		  "bfyshifouercijiequ": "0",
-		  "bfyjiequqian": "空",
-		  "bfyjiequhou": "空",
-		  "bfyjiequshuzuqian": "<a",
-		  "bfyjiequshuzuhou": "/a>",
-		  "bfbiaotiqian": ">",
-		  "bfbiaotihou": "<",
-		  "bflianjieqian": "href=\"",
-		  "bflianjiehou": "\"" }
+{
+  "author": "",
+  "name": "自定义规则讲解演示",
+  "url": "https://v.qq.com", //填网站链接
+  "tihuan": "cnzz.com", //这个不用动，是个别网站嗅探时过滤地址用的
+  "User": "空", //这个不用动，是个别网站播放需要请求头时才用到
+  "fenlei": "电视剧$/channel/movie?listpage=1&channel=movie&sort=75&_all=1", //网站列表的分类
+  "houzhui": "", //网站翻页链接的后缀
+  "shifouercijiequ": "0", //截取的列表数组是否需要二次截取，0不需要，1需要
+  "jiequqian": "空", //不需要二次截取就填空
+  "jiequhou": "空", //不需要二次截取就填空
+  "jiequshuzuqian": "class=\"mod_figure", //截取的列表数组的前关键词,截取的关键词有 " 的用 \ 进行转义
+  "jiequshuzuhou": "<iframe", //截取的列表数组的后关键词,截取的关键词有 " 的用 \ 进行转义
+  "tupianqian": "e_mid=", //列表中资源的图片前关键词,截取的关键词有 " 的用 \ 进行转义
+  "tupianhou": "&", //列表中资源的图片后关键词,截取的关键词有 " 的用 \ 进行转义
+  "biaotiqian": "title=\"", //列表中资源的标题前关键词,截取的关键词有 " 的用 \ 进行转义
+  "biaotihou": "\"", //列表中资源的标题后关键词,截取的关键词有 " 的用 \ 进行转义
+  "lianjieqian": "href=\"", //列表中资源的详情页跳转链接前关键词,截取的关键词有 " 的用 \ 进行转义
+  "lianjiehou": "\"", //列表中资源的详情页跳转链接后关键词,截取的关键词有 " 的用 \ 进行转义
+
+  //搜索部分基本不用动，现在网站基本都是苹果CMS，所有搜索是固定的。
+  "sousuoqian": "/index.php/ajax/suggest?mid=1&wd=",
+  "sousuohou": "&limit=500",
+  "sousuohouzhui": "/index.php/vod/detail/id/", //搜索页影片跳转详情页的中间标识链接部分
+  "ssmoshi": "0",
+  "sousuoshifouercijiequ": "0",
+  "jspic": "pic",
+  "jsname": "name",
+  "jsid": "id",
+  "ssjiequqian": "空",
+  "ssjiequhou": "空",
+  "ssjiequshuzuqian": "空",
+  "ssjiequshuzuhou": "空",
+  "sstupianqian": "空",
+  "sstupianhou": "空",
+  "ssbiaotiqian": "空",
+  "ssbiaotihou": "空",
+  "sslianjieqian": "空",
+  "sslianjiehou": "空",
+
+  "bfshifouercijiequ": "0",
+  "bfjiequqian": "空",
+  "bfjiequhou": "空",
+  "bfjiequshuzuqian": "id=\"zu", //播放截取的列表数组的前关键词
+  "bfjiequshuzuhou": "</ul>", //播放截取的列表数组的后关键词
+
+  "zhuangtaiqian": "更新：</span>", //状态前关键词
+  "zhuangtaihou": "</p>", //状态后关键词
+  "daoyanqian": "导演：</span>", //导演前关键词
+  "daoyanhou": "</p>", //导演态后关键词
+  "zhuyanqian": "主演：</span>", //主演前关键词
+  "zhuyanhou": "</p>", //主演后关键词
+  "juqingqian": "简介：</span>", //剧情前关键词
+  "juqinghou": "</div>", //剧情后关键词
+
+  "bfyshifouercijiequ": "0", //截取的播放列表数组是否需要二次截取，0不需要，1需要
+  "bfyjiequqian": "空", //不需要二次截取就填空
+  "bfyjiequhou": "空", //不需要二次截取就填空
+  "bfyjiequshuzuqian": "<a", //播放剧集数组前关键词
+  "bfyjiequshuzuhou": "/a>", //播放剧集数组后关键词
+  "bfbiaotiqian": ">", //播放剧集标题前关键词
+  "bfbiaotihou": "<", //状播放剧集标题后关键词
+  "bflianjieqian": "href=\"", //播放剧集链接前关键词
+  "bflianjiehou": "\""
+} //播放剧集链接后关键词
 ]
 }
