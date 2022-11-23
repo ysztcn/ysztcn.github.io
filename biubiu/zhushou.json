@@ -26,7 +26,8 @@
 	{"name": "快播资源","url": "http://www.kuaibozy.com/api.php"}
 ],
 "zhujiexi":[
-	{"name":"主解3","url":"https://json.freejx.in/?url="}
+	{"name":"主解1","url":"https://json.freejx.in/?url="},
+	{"name":"主解2","url":"http://rxjx.kuanjv.com/allm3u8.php?url="}
 ],
 "beiyongjiexi": [
 	{"name":"备解1","url":"https://okjx.cc/?url="},
@@ -34,7 +35,10 @@
 	{"name":"备解3","url":"https://jx.xmflv.com/?url="},
 	{"name":"备解4","url":"https://www.pangujiexi.com/pangu/?url="},
 	{"name":"备解5","url":"https://chaxun.truechat365.com/?url="},
-	{"name":"备解6","url":"https://www.pangujiexi.com/pangu/?url="}	
+	{"name":"备解6","url":"https://tljiaqing.nde.tw/m3u8/?url="},
+	{"name":"备解7","url":"https://h5.freejson.xyz/player/?url="},
+	{"name":"备解8","url":"https://freejx.rx88.top:1234/?url="},
+	{"name":"备解9","url":"https://www.pangujiexi.com/pangu/?url="}	
 ],
 "dianshizhibo": "http://www.mikkk.xyz/bblive.txt",
 "嗅探词": "m3u8?#ixigua#.czspp#.m3u8#mp4#.flv#.mp3#.m4a#?video_id=",
@@ -118,13 +122,14 @@
 	"bfbiaotihou": "</span",
 	"bflianjieqian": "href=\"",
 	"bflianjiehou": "\""},
-	{"name": "*低端影视", // https://ddys2.me/
+	{"name": "*低端影视", // https://ddys2.me
 	"url": "https://ddys.tv",
-	"ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36",
+	"ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1",
 	"User": "空",
+	"禁用搜索": "1",
 	"自动点击字符": ".vjs-big-play-button",
 	"嗅探词": ".m3u8#mp4#.douyinvod",
-	"fenlei": " 低端$/page/#站长推荐$/tag/recommend/page/#电影$/category/movie/page/#电视剧$/category/airing/page/#动画$/category/anime/page/#美剧$/category/drama/western-drama/page/#豆瓣电影Top250$/tag/douban-top250/page/#本季新番$/category/anime/new-bangumi/page/#华语电影$/category/movie/chinese-movie/page/",
+	"fenlei": "韩剧$/category/drama/kr-drama/page/#美剧$/category/drama/western-drama/page/#欧美电影$/category/movie/western-movie/page/#日韩电影$/category/movie/asian-movie/page/#华语电影$/category/movie/chinese-movie/page/#动漫$/category/anime/page/",
 	"houzhui": "/",
 	"shifouercijiequ": "0",
 	"jiequqian": "空",
@@ -144,9 +149,6 @@
 	"sousuohouzhui": "",
 	"ssmoshi": "1",
 	"sousuoshifouercijiequ": "0",
-	"jspic": "pic",
-	"jsname": "name",
-	"jsid": "id",
 	"ssjiequqian": "空",
 	"ssjiequhou": "空",
 	"ssjiequshuzuqian": "<article id=\"post",
@@ -616,7 +618,7 @@
     {"name": "影视工场", // https://www.ysgcapp.com/
 	"url": "https://www.ysgc.vip",
 	"tihuan": "cnzz.com",
-	"User": "空",
+	"User": "User-Agent$123#referer$www.ysgc.vip",
 	"fenlei": "电视剧$/vodshow/2--------#电影$/vodshow/1--------#综艺$/vodshow/3--------#动漫$/vodshow/4--------#番剧$/vodshow/26--------#国产剧$/vodshow/13--------#港台剧$/vodshow/14--------#日韩剧$/vodshow/15--------#欧美剧$/vodshow/16--------#动作片$/vodshow/1---动作-----#喜剧片$/vodshow/1---喜剧-----#爱情片$/vodshow/1---爱情-----#科幻片$/vodshow/1---科幻-----#恐怖片$/vodshow/1---恐怖-----#剧情片$/vodshow/1---剧情-----#战争片$/vodshow/1---战争-----#武侠片$/vodshow/1---武侠-----",
 	"houzhui": "---.html",
 	"shifouercijiequ": "0",
