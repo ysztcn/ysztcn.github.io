@@ -38,7 +38,8 @@
 	{"name":"备解6","url":"https://tljiaqing.nde.tw/m3u8/?url="},
 	{"name":"备解7","url":"https://h5.freejson.xyz/player/?url="},
 	{"name":"备解8","url":"https://freejx.rx88.top:1234/?url="},
-	{"name":"备解9","url":"https://www.pangujiexi.com/pangu/?url="}	
+	{"name":"备解9", "url": "https://jx.bozrc.com:4433/player/?url="},
+	{"name":"备解10","url":"https://www.pangujiexi.com/pangu/?url="}	
 ],
 "dianshizhibo": "http://www.mikkk.xyz/bblive.txt",
 "嗅探词": "m3u8?#ixigua#.czspp#.m3u8#mp4#.flv#.mp3#.m4a#?video_id=",
@@ -618,7 +619,8 @@
     {"name": "影视工场", // https://www.ysgcapp.com/
 	"url": "https://www.ysgc.vip",
 	"tihuan": "cnzz.com",
-	"User": "User-Agent$123#referer$www.ysgc.vip",
+	"ua": "Dalvik/2.1.0 (Linux; U; Android 5.1.1; MI 9 Build/LMY48Z)",
+	"User": "空",
 	"fenlei": "电视剧$/vodshow/2--------#电影$/vodshow/1--------#综艺$/vodshow/3--------#动漫$/vodshow/4--------#番剧$/vodshow/26--------#国产剧$/vodshow/13--------#港台剧$/vodshow/14--------#日韩剧$/vodshow/15--------#欧美剧$/vodshow/16--------#动作片$/vodshow/1---动作-----#喜剧片$/vodshow/1---喜剧-----#爱情片$/vodshow/1---爱情-----#科幻片$/vodshow/1---科幻-----#恐怖片$/vodshow/1---恐怖-----#剧情片$/vodshow/1---剧情-----#战争片$/vodshow/1---战争-----#武侠片$/vodshow/1---武侠-----",
 	"houzhui": "---.html",
 	"shifouercijiequ": "0",
