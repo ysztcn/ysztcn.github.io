@@ -1,4 +1,4 @@
-//2022.11.18
+//2022.12.29
 {"Home": [
 	{"key":"历史","title":"历史","pic":"http://pic.netbian.com/uploads/allimg/161004/221627-1475590587ba17.jpg"},
 	{"key":"收藏","title":"收藏","pic":"http://pic.netbian.com/uploads/allimg/161004/221627-1475590587ba17.jpg"},
@@ -333,10 +333,10 @@
 	"bfqianzhui": ""},
 	{"网站名字": "看了么",
 	"网站地址": "https://www.ksksl.com",
-	"访问请求ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36",
+	"访问请求ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36 Edg/106.0.1370.37",
 	"访问请求cookie": "空",
 	"访问请求referer": "空",
-	"播放请求头": "空",
+	"播放请求头": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36 Edg/106.0.1370.37",
 	"图片请求头": "空",
 	"网页编码": "utf-8",
 
@@ -347,7 +347,7 @@
 	"是否启用解析模式": "0",
 
 	//需要点击播放的网站可以自己找网页的点击js字符
-	"自动点击字符": "空",
+	"自动点击字符": ".play-switch",
 
 	//0：不启用，1：启用
 	"搜索手动验证": "0",
@@ -420,7 +420,7 @@
 	"url": "http://www.lezhutv.com",
 	"ua": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1",
 	"User": "User-Agent$123",
-	"搜索手动验证": "1",
+	"搜索手动验证": "0",
 	"fenlei": "电视剧$/type/2-#电影$/type/1-#综艺$/type/3-#动漫$/type/4-#韩剧$/type/14-#美剧$/type/15-#其它$/type/16-",
 	"houzhui": ".html",
 	"shifouercijiequ": "0",
