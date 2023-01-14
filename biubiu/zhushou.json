@@ -47,7 +47,7 @@
 "zidingyi": [
 	{"name": "*大米星球",
 	"url": "https://dmxq6.com",
-	"ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36",
+	"ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36 Edg/106.0.1370.37",
 	"tihuan": "cnzz.com",
 	"User": "User-Agent:Dart/2.14 (dart:io)",
 	"自动点击字符": ".popup-btn",
@@ -194,7 +194,7 @@
 	"bflianjiehou": ".",
 	"bfqianzhui": "?ep="},
 	{"name": "*555电影",
-	"url": "https://www.xawqxh.net",
+	"url": "https://www.555dyy3.com",
 	"ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36 Edg/106.0.1370.37",
 	"tihuan": "cnzz.com",
 	"User": "User-Agent:Dart/2.14 (dart:io)",
