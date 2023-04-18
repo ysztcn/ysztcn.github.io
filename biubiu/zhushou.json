@@ -3,9 +3,9 @@
 "Home": [  
 	{"key":"历史","title":"观看记录","pic":"https://pic.imgdb.cn/item/641d51d6a682492fcc7ab0ce.png"},
 	{"key":"收藏","title":"我的收藏","pic":"https://pic.imgdb.cn/item/641d4939a682492fcc6cd0ef.png"},
-	{"key":"APP","title":"主采集","pic":"https://pic.imgdb.cn/item/641d4942a682492fcc6cdfde.png"},
-	{"key":"采集","title":"次采集","pic":"https://pic.imgdb.cn/item/641d4942a682492fcc6cdfde.png"},
-	{"key":"网页","title":"自定义站点","pic":"https://pic.imgdb.cn/item/641d4942a682492fcc6cdfab.png"},
+	{"key":"APP","title":"APP接口","pic":"https://pic.imgdb.cn/item/641d4942a682492fcc6cdecc.png"},
+	{"key":"采集","title":"采集资源","pic":"https://pic.imgdb.cn/item/641d4942a682492fcc6cdfde.png"},
+	{"key":"网页","title":"影视网站","pic":"https://pic.imgdb.cn/item/641d4942a682492fcc6cdfab.png"},
 	{"key":"直播","title":"网络电视","pic":"https://pic.imgdb.cn/item/641d493aa682492fcc6cd12b.png"},
 	{"key": "自选网页","title": "抓饭直播","pic": "https://pic.imgdb.cn/item/641d493aa682492fcc6cd20c.png",
 	"custom": "CnsibmFtZSI6ICLmipPppa3nm7Tmkq0iLAoidXJsIjogImh0dHBzOi8vbS56aHVhZmFuLnRlY2giLAoidWEiOiAiTW96aWxsYS81LjAgKGlQaG9uZTsgQ1BVIGlQaG9uZSBPUyAxM18yXzMgbGlrZSBNYWMgT1MgWCkgQXBwbGVXZWJLaXQvNjA1LjEuMTUgKEtIVE1MLCBsaWtlIEdlY2tvKSBWZXJzaW9uLzEzLjAuMyBNb2JpbGUvMTVFMTQ4IFNhZmFyaS82MDQuMSIsCiJVc2VyIjogIuepuiIsCiLmmK/lkKborrDlvZXljoblj7IiOiAiMSIsCiLnm7TmjqXmkq3mlL4iOiAiMSIsCiLliJfooajmmL7npLoiOiAiMSIsCiJmZW5sZWkiOiAi5L2T6IKyJOepuiIsCiJob3V6aHVpIjogIiIsCiJxaXNoaXllIjogIuepuiIsCiJzaGlmb3VlcmNpamllcXUiOiAiMSIsCiJqaWVxdXFpYW4iOiAiXCJjaGFubmVsc1wiIiwKImppZXF1aG91IjogIl0iLAoiamllcXVzaHV6dXFpYW4iOiAieyIsCiJqaWVxdXNodXp1aG91IjogIn0iLAoidHVwaWFucWlhbiI6ICJcImltYWdlVXJsXCI6XCIiLAoidHVwaWFuaG91IjogIlwiIiwKImJpYW90aXFpYW4iOiAiXCJjbmFtZVwiOlwiIiwKImJpYW90aWhvdSI6ICJcIiIsCiJsaWFuamllcWlhbiI6ICJcImlkXCI6XCIiLAoibGlhbmppZWhvdSI6ICJcIiIsCiJsanFpYW56aHVpIjogImh0dHBzOi8vbS56aHVhZmFuLnRlY2gvIiwKImZ1Ymlhb3RpcWlhbiI6ICJcImNhdGVnb3J5TmFtZVwiOlwiIiwKImZ1Ymlhb3RpaG91IjogIlwiIn0="},
@@ -14,14 +14,23 @@
 ],
 "zhuyejiekou": [
 	{"name": "影库(萝卜)","url": "https://yingkudy.com/lvdou_api.php/v1.vod"},
-	{"name": "cs","url": "https://www.zhanlangbu.com/ruifenglb_api.php/v1.vod"},
-	{"name": "暖光","url": "https://app.bl210.com/api.php/v1.vod"}
+	{"name": "我爱跟剧","url": "https://www.genmov.com/mogai_api.php/v1.vod"},
+	{"name": "阿里影视","url": "http://aliys.cn:90/api.php/v1.vod"}
 ],
 "caijizhan": [
-	{"name":"七七","url":"http://api.kunyu77.com/api.php"},
+	{"name": "酷云77","url": "http://api.kunyu77.com/api.php"},
 	{"name": "红牛资源","url": "https://www.hongniuzy2.com/api.php"},
-	{"name": "樱花资源","url": "https://m3u8.apiyhzy.com/api.php"},
-	{"name": "快播资源","url": "http://www.kuaibozy.com/api.php"}
+	{"name": "百度云资源","url": "https://api.apibdzy.com/api.php"},
+	{"name": "鱼乐","url": "https://api.yulecj.com/api.php"},
+	{"name": "新浪","url": "https://api.xinlangapi.com/xinlangapi.php"},
+	{"name": "卧龙","url": "https://collect.wolongzyw.com/api.php"},
+	{"name": "酷点","url": "https://kudian10.com/api.php"},
+	{"name": "百度","url": "https://api.apibdzy.com/api.php"},
+	{"name": "天空","url": "https://api.tiankongapi.com/api.php"},
+	{"name": "闪电","url": "https://sdzyapi.com/api.php"},
+	{"name": "非凡","url": "http://cj.ffzyapi.com/api.php"},
+	{"name": "iKun","url": "https://ikunzyapi.com/api.php"},
+	{"name": "U酷","url": "https://api.ukuapi.com/api.php"}
 ],
 "zhujiexi":[
 	{"name":"乐檬1080直解","url":"http://ts.lmlemon.com/home/api?type=ys&uid=19083&key=32ca2fdd9690e842d5f54ecc78ae4f79&url="}
@@ -33,7 +42,7 @@
 	{"name":"盘古","url":"https://www.pangujiexi.com/pangu/?url="},
 	{"name":"m3u8","url":"https://chaxun.truechat365.com/?url="}
 ],
-"dianshizhibo": "http://www.mikkk.xyz/bblive.txt",
+"dianshizhibo": "https://ghproxy.com/https:/raw.githubusercontent.com/ysztcn/ysztcn.github.io/master/biubiu/zb.txt",
 "嗅探词": "m3u8?#ixigua#.czspp#.m3u8#mp4#.flv#.mp3#.m4a#?video_id=",
 "guolvdizhi": ".gif#.css#.html#51.la#?url=#cnzz.com#baidu.com#tootw.com#auete.com#bilibili.com",
 "zidingyi": [

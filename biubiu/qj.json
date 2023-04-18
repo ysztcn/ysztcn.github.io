@@ -1,12 +1,8 @@
 { //20221110
     "zhuyejiekou": [
 	{"name": "影库(萝卜)","url": "https://yingkudy.com/lvdou_api.php/v1.vod"},
-	{"name": "月儿影视","url": "https://yue52.xyz/api.php/v1.vod"},
-	{"name": "渔渔影视","url": "http://luobo.yugenye.site/api.php/v1.vod"},
 	{"name": "我爱跟剧","url": "https://www.genmov.com/mogai_api.php/v1.vod"},
-	{"name": "暖光","url": "https://app.bl210.com/api.php/v1.vod"},
-	{"name": "阿里影视","url": "http://aliys.cn:90/api.php/v1.vod"},
-	{"name": "QC影视","url": "https://www.qcsvip.com/mogai_api.php/v1.vod"}
+	{"name": "阿里影视","url": "http://aliys.cn:90/api.php/v1.vod"}
     ],
     "zhujiexi": "",
     "beiyongjiexi": "https://chaxun.truechat365.com/?url=#https://jx.m3u8.tv/jiexi/?url=",
@@ -18,7 +14,16 @@
         {"name": "酷云77","url": "http://api.kunyu77.com/api.php"},
         {"name": "红牛资源","url": "https://www.hongniuzy2.com/api.php"},
         {"name": "百度云资源","url": "https://api.apibdzy.com/api.php"},
-        {"name": "番茄资源","url": "http://api.fqzy.cc/api.php"}
+		{"name": "鱼乐","url": "https://api.yulecj.com/api.php"},
+		{"name": "新浪","url": "https://api.xinlangapi.com/xinlangapi.php"},
+		{"name": "卧龙","url": "https://collect.wolongzyw.com/api.php"},
+		{"name": "酷点","url": "https://kudian10.com/api.php"},
+		{"name": "百度","url": "https://api.apibdzy.com/api.php"},
+		{"name": "天空","url": "https://api.tiankongapi.com/api.php"},
+		{"name": "闪电","url": "https://sdzyapi.com/api.php"},
+		{"name": "非凡","url": "http://cj.ffzyapi.com/api.php"},
+		{"name": "iKun","url": "https://ikunzyapi.com/api.php"},
+        {"name": "U酷","url": "https://api.ukuapi.com/api.php"}
     ],
     "lunbo": [
         {
