@@ -1,15 +1,15 @@
 // 2023.5.11
 {
 "Home": [  
-	{"key":"历史","title":"观看记录","pic":"https://pic.imgdb.cn/item/641d51d6a682492fcc7ab0ce.png"},
-	{"key":"收藏","title":"我的收藏","pic":"https://pic.imgdb.cn/item/641d4939a682492fcc6cd0ef.png"},
-	{"key":"APP","title":"APP接口","pic":"https://pic.imgdb.cn/item/641d4942a682492fcc6cdecc.png"},
-	{"key":"采集","title":"采集资源","pic":"https://pic.imgdb.cn/item/641d4942a682492fcc6cdfde.png"},
-	{"key":"网页","title":"影视网站","pic":"https://pic.imgdb.cn/item/641d4942a682492fcc6cdfab.png"},
-	{"key":"直播","title":"网络电视","pic":"https://pic.imgdb.cn/item/641d493aa682492fcc6cd12b.png"},
-	{"key": "自选网页","title": "抓饭直播","pic": "https://pic.imgdb.cn/item/641d493aa682492fcc6cd20c.png",
+	{"key":"历史","title":"观看记录","pic":"https://cdn.jsdelivr.net/gh/ysztcn/ysztcn.github.io@master/biubiu/pic/pic5.png"},
+	{"key":"收藏","title":"我的收藏","pic":"https://cdn.jsdelivr.net/gh/ysztcn/ysztcn.github.io@master/biubiu/pic/pic6.png"},
+	{"key":"APP","title":"APP接口","pic":"https://cdn.jsdelivr.net/gh/ysztcn/ysztcn.github.io@master/biubiu/pic/pic15.png"},
+	{"key":"采集","title":"采集资源","pic":"https://cdn.jsdelivr.net/gh/ysztcn/ysztcn.github.io@master/biubiu/pic/pic14.png"},
+	{"key":"网页","title":"影视网站","pic":"https://cdn.jsdelivr.net/gh/ysztcn/ysztcn.github.io@master/biubiu/pic/pic13.png"},
+	{"key":"直播","title":"网络电视","pic":"https://cdn.jsdelivr.net/gh/ysztcn/ysztcn.github.io@master/biubiu/pic/pic7.png"},
+	{"key": "自选网页","title": "抓饭直播","pic": "https://cdn.jsdelivr.net/gh/ysztcn/ysztcn.github.io@master/biubiu/pic/pic9.png",
 	"custom": "CnsibmFtZSI6ICLmipPppa3nm7Tmkq0iLAoidXJsIjogImh0dHBzOi8vbS56aHVhZmFuLnRlY2giLAoidWEiOiAiTW96aWxsYS81LjAgKGlQaG9uZTsgQ1BVIGlQaG9uZSBPUyAxM18yXzMgbGlrZSBNYWMgT1MgWCkgQXBwbGVXZWJLaXQvNjA1LjEuMTUgKEtIVE1MLCBsaWtlIEdlY2tvKSBWZXJzaW9uLzEzLjAuMyBNb2JpbGUvMTVFMTQ4IFNhZmFyaS82MDQuMSIsCiJVc2VyIjogIuepuiIsCiLmmK/lkKborrDlvZXljoblj7IiOiAiMSIsCiLnm7TmjqXmkq3mlL4iOiAiMSIsCiLliJfooajmmL7npLoiOiAiMSIsCiJmZW5sZWkiOiAi5L2T6IKyJOepuiIsCiJob3V6aHVpIjogIiIsCiJxaXNoaXllIjogIuepuiIsCiJzaGlmb3VlcmNpamllcXUiOiAiMSIsCiJqaWVxdXFpYW4iOiAiXCJjaGFubmVsc1wiIiwKImppZXF1aG91IjogIl0iLAoiamllcXVzaHV6dXFpYW4iOiAieyIsCiJqaWVxdXNodXp1aG91IjogIn0iLAoidHVwaWFucWlhbiI6ICJcImltYWdlVXJsXCI6XCIiLAoidHVwaWFuaG91IjogIlwiIiwKImJpYW90aXFpYW4iOiAiXCJjbmFtZVwiOlwiIiwKImJpYW90aWhvdSI6ICJcIiIsCiJsaWFuamllcWlhbiI6ICJcImlkXCI6XCIiLAoibGlhbmppZWhvdSI6ICJcIiIsCiJsanFpYW56aHVpIjogImh0dHBzOi8vbS56aHVhZmFuLnRlY2gvIiwKImZ1Ymlhb3RpcWlhbiI6ICJcImNhdGVnb3J5TmFtZVwiOlwiIiwKImZ1Ymlhb3RpaG91IjogIlwiIn0="},
-	{"key": "自选网页",	"title": "928直播",	"pic": "https://pic.imgdb.cn/item/641d493aa682492fcc6cd20c.png",
+	{"key": "自选网页",	"title": "928直播",	"pic": "https://cdn.jsdelivr.net/gh/ysztcn/ysztcn.github.io@master/biubiu/pic/pic9.png",
 	"custom":"eyJuYW1lIjogIjkyOOebtOaSrSIsCiJ1cmwiOiAiaHR0cDovL3d3dy45MjgudHYiLAoidWEiOiAiTW96aWxsYS81LjAgKGlQaG9uZTsgQ1BVIGlQaG9uZSBPUyAxM18yXzMgbGlrZSBNYWMgT1MgWCkgQXBwbGVXZWJLaXQvNjA1LjEuMTUgKEtIVE1MLCBsaWtlIEdlY2tvKSBWZXJzaW9uLzEzLjAuMyBNb2JpbGUvMTVFMTQ4IFNhZmFyaS82MDQuMSIsCiJVc2VyIjogIlJlZmVyZXIkaHR0cDovL3BsYXkuOTI4LnR2LyIsCiLmmK/lkKborrDlvZXljoblj7IiOiAiMSIsCiLnm7TmjqXmkq3mlL4iOiAiMSIsCiLliJfooajmmL7npLoiOiAiMSIsCiJmZW5sZWkiOiAi5L2T6IKyJOepuiIsCiJob3V6aHVpIjogIiIsCiJxaXNoaXllIjogIuepuiIsCiJzaGlmb3VlcmNpamllcXUiOiAiMCIsCiJqaWVxdXFpYW4iOiAiWyIsCiJqaWVxdWhvdSI6ICJdIiwKImppZXF1c2h1enVxaWFuIjogIm56dy1vLXQiLAoiamllcXVzaHV6dWhvdSI6ICI8L2E+IiwKInR1cGlhbnFpYW4iOiAiaHR0cHM6Ly9pbWcwLmJhaWR1LmNvbS9pdC91PTk1OTYwNzA0MywxMDU0MjM3NTIwJmZtPTI1MyZmbXQ9YXV0byZhcHA9MTM4JmY9SlBFRz93PTQxNyZoPTUwMCIsCiJ0dXBpYW5ob3UiOiAiXCIiLAoiYmlhb3RpcWlhbiI6ICJ6aHVkdWlfd3V5ZFwiPiIsCiJiaWFvdGlob3UiOiAiPC9zZWN0aW9uPiIsCiJsaWFuamllcWlhbiI6ICJocmVmPVwiaHR0cCIsCiJsaWFuamllaG91IjogIlwiIiwKImxqcWlhbnpodWkiOiAiaHR0cCIsCiJmdWJpYW90aXFpYW4iOiAidC1uemYtbz1cIiIsCiJmdWJpYW90aWhvdSI6ICJcIiJ9"}
 ],
 "zhuyejiekou": [
