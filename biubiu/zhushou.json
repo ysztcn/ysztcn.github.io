@@ -19,6 +19,8 @@
 ],
 "caijizhan": [
 	{"name": "酷云77","url": "http://api.kunyu77.com/api.php"},
+	{"name": "快看资源","url": "https://kuaikan-api.com/api.php"},
+	{"name": "红牛资源","url": "https://www.hongniuzy2.com/api.php"},
 	{"name": "红牛资源","url": "https://www.hongniuzy2.com/api.php"},
 	{"name": "百度","url": "https://api.apibdzy.com/api.php"},
 	{"name": "鱼乐","url": "https://api.yulecj.com/api.php"},
@@ -34,15 +36,14 @@
 	{"name": "U酷","url": "https://api.ukuapi.com/api.php"}
 ],
 "zhujiexi":[
-	{"name":"乐檬1080直解","url":"http://ts.lmlemon.com/home/api?type=ys&uid=19083&key=32ca2fdd9690e842d5f54ecc78ae4f79&url="}
+	{"name":"xxx","url":"http://"}
 ],
 "beiyongjiexi": [
 	{"name":"OK","url":"https://okjx.cc/?url="},
 	{"name":"jsonplayer","url":"https://jx.jsonplayer.com/player/?url="},
 	{"name":"虾米","url":"https://jx.xmflv.com/?url="},
 	{"name":"盘古","url":"https://www.pangujiexi.com/pangu/?url="},
-	{"name":"m3u8","url":"https://chaxun.truechat365.com/?url="},
-	{"name":"泽楠云","url":"https://player.iizny.com/?url="}
+	{"name":"m3u8","url":"https://chaxun.truechat365.com/?url="}
 ],
 "dianshizhibo": "https://ghproxy.com/https:/raw.githubusercontent.com/ysztcn/ysztcn.github.io/master/biubiu/zb.txt",
 "嗅探词": "m3u8?#ixigua#.czspp#.m3u8#mp4#.flv#.mp3#.m4a#?video_id=",
