@@ -91,7 +91,7 @@
 // H标识为网页J标识为json
 // *标识为有发布页
 // S标识为直接得到视频源不再嗅探
-	{"网站名字": "测试J",
+	{"网站名字": "说明J",
     "网站地址": "",
     "访问请求ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.50",
     "访问请求cookie": "空",
