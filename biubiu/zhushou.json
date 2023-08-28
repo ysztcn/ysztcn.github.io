@@ -13,38 +13,19 @@
 	"custom":"eyJuYW1lIjogIjkyOOebtOaSrSIsCiJ1cmwiOiAiaHR0cDovL3d3dy45MjgudHYiLAoidWEiOiAiTW96aWxsYS81LjAgKGlQaG9uZTsgQ1BVIGlQaG9uZSBPUyAxM18yXzMgbGlrZSBNYWMgT1MgWCkgQXBwbGVXZWJLaXQvNjA1LjEuMTUgKEtIVE1MLCBsaWtlIEdlY2tvKSBWZXJzaW9uLzEzLjAuMyBNb2JpbGUvMTVFMTQ4IFNhZmFyaS82MDQuMSIsCiJVc2VyIjogIlJlZmVyZXIkaHR0cDovL3BsYXkuOTI4LnR2LyIsCiLmmK/lkKborrDlvZXljoblj7IiOiAiMSIsCiLnm7TmjqXmkq3mlL4iOiAiMSIsCiLliJfooajmmL7npLoiOiAiMSIsCiJmZW5sZWkiOiAi5L2T6IKyJOepuiIsCiJob3V6aHVpIjogIiIsCiJxaXNoaXllIjogIuepuiIsCiJzaGlmb3VlcmNpamllcXUiOiAiMCIsCiJqaWVxdXFpYW4iOiAiWyIsCiJqaWVxdWhvdSI6ICJdIiwKImppZXF1c2h1enVxaWFuIjogIm56dy1vLXQiLAoiamllcXVzaHV6dWhvdSI6ICI8L2E+IiwKInR1cGlhbnFpYW4iOiAiaHR0cHM6Ly9pbWcwLmJhaWR1LmNvbS9pdC91PTk1OTYwNzA0MywxMDU0MjM3NTIwJmZtPTI1MyZmbXQ9YXV0byZhcHA9MTM4JmY9SlBFRz93PTQxNyZoPTUwMCIsCiJ0dXBpYW5ob3UiOiAiXCIiLAoiYmlhb3RpcWlhbiI6ICJ6aHVkdWlfd3V5ZFwiPiIsCiJiaWFvdGlob3UiOiAiPC9zZWN0aW9uPiIsCiJsaWFuamllcWlhbiI6ICJocmVmPVwiaHR0cCIsCiJsaWFuamllaG91IjogIlwiIiwKImxqcWlhbnpodWkiOiAiaHR0cCIsCiJmdWJpYW90aXFpYW4iOiAidC1uemYtbz1cIiIsCiJmdWJpYW90aWhvdSI6ICJcIiJ9"}
 ],
 "zhuyejiekou": [
-	{"name":"我爱跟剧","url": "https://www.genmov.com/mogai_api.php/v1.vod"},
-	{"name":"创意影院","url":"https://www.30dian.cn/api.php/v1.vod"},
-	{"name":"萌蛋蛋","url":"http://app.mengdandan.com/xgapp.php/v1/"},
-	{"name":"天天视频(萝卜)","url":"http://app.qianju.cc/api.php/v1.vod"},
-	{"name":"淘剧社(萝卜)","url":"https://app.shuhai99.com/api.php/v1.vod"},
-	{"name":"淘-剧影院","url":"https://app.shuhai99.com/api.php/v1.vod"},
-	{"name":"影视之家","url":"http://yszj.cm/xgapp.php/v2/"},
-	{"name":"天空影视","url":"http://tkznp.com/xgapp.php/v1/"},
-	{"name":"F7好看剧","url":"https://www.f7hkj.cc/api.php/app/"}, 
 	{"name":"555","url":"https://www.xawqxh.net/api.php/app/"},
 	{"name":"4k鸭奈飞","url":"https://yanetflix.me/api.php/app/"}, 
-	{"name":"霹雳影视","url":"https://plyingshi.com/api.php/v1.vod"}, 
 	{"name":"明帝影视","url":"https://ys.md214.cn/api.php/app/"}, 
 	{"name":"天天影院","url":"https://www.ttmja.com/api.php/app/"},
 	{"name":"UM影院","url":"https://www.umkan.cc/mogai_api.php/v1.vod"},
 	{"name":"旧梦影视","url":"http://43.139.139.17:4433/api.php/app/"},
-	{"name":"69美剧","url":"https://www.69mj.com/xgapp.php/v1/"}, 
-	{"name":"映迷","url":"https://www.inmi.app/xgapp.php/v1/"},
-	{"name":"123视频","url":"https://123aktv.com/api.php/v1.vod"},
 	{"name":"大米星球","url":"https://dmdy2.vip/api.php/app/"},
-	{"name":"HG影视","url":"https://hong.hgyx.vip/api.php/v1.vod"},
-	{"name":"鹿缘影视","url":"https://iuio.xyz/api.php/app/"},
-	{"name":"HOHO TV","url":"https://hoho.tv/api.php/app/"},
 	{"name":"落攻阁影视网","url":"https://www.lggys.cn/api.php/app/"},
 	{"name":"空气屋","url":"https://www.airfun.fun/xgapp.php/v2/"},
 	{"name":"真爱影视","url":"https://www.chiguafilm.com/api.php/v1.vod"}, 
-	{"name":"天天视频","url":"http://app.qianju.cc/api.php/v1.vod"},
-	{"name":"悟空影院","url":"http://dapi.pntao.com/api.php/v1.vod"},
-	{"name":"玖卿乐播","url":"https://vod.nqcode.cn/api.php/v1.vod"}
+	{"name":"悟空影院","url":"http://dapi.pntao.com/api.php/v1.vod"}
 ],
 "caijizhan":[
-	{"name":"七七","url":"https://api.tyun77.cn/api.php"},
 	{"name": "量子资源","url": "https://cj.lziapi.com/api.php"},
 	{"name": "红牛资源","url": "https://www.hongniuzy2.com/api.php"},
 	{"name": "百度资源","url": "https://api.apibdzy.com/api.php"},
@@ -60,7 +41,6 @@
 	{"name":"快车资源(切)","url":"https://caiji.kczyapi.com/api.php"},
 	{"name":"新浪资源(切)","url":"http://api.xinlangapi.com/xinlangapi.php"},
 	{"name":"樱花资源","url":"https://m3u8.apiyhzy.com/api.php"},
-	{"name":"非凡资源","url":"http://www.ffzy.tv/api.php"}, 
 	{"name":"CK资源","url": "https://ckzy.me/api.php"},
 	{"name":"susong在线影视","url":"http://150.158.102.76/api.php/"},
 	{"name":"艾旦影视","url":"https://lovedan.net/api.php/"},
@@ -85,16 +65,10 @@
         }
     ],
 "zhujiexi":[
-	{"name": "主解1","url": "http://27.124.4.42:4567/jhjson/ceshi.php?url="},
-	{"name":"主解2","url":"http://xiaoxin.1080p.me/home/api?type=ys&uid=2922388&key=afhjmtxyBDFHLQRV39&url="},
-	{"name":"主解3","url":"https://vip.xuux.icu/home/api?type=ys&uid=1325731&key=adfgilmnpwzBDEJPY3&url="},
-	{"name":"主解4","url":"http://110.42.2.247:880/analysis/json/?uid=2100&my=afimnpqrvBHJKOQS47&mgtv=app&url="}
+	{"name": "主解1","url": "http://json.g9.pub:66/?url="}
 ],
 "beiyongjiexi": [	
-	{"name":"备解1","url":"https://yparse.ik9.cc/index.php?url="},
-	{"name":"备解2","url":"https://jx.777jiexi.com/player/?url=请求头okhttp/3.12.0"},
-	{"name":"备解3","url":"https://jx.jsonplayer.com/player/?url="},
-	{"name":"备解4","url":"https://jx.xmflv.com/?url="}
+	{"name":"备解1","url":"https://yparse.ik9.cc/index.php?url="}
 ],
 "dianshizhibo": "https://ghproxy.com/https:/raw.githubusercontent.com/ysztcn/ysztcn.github.io/master/biubiu/zb.txt",
 "嗅探词": "m3u8?#ixigua#.czspp#.m3u8#mp4#.flv#.mp3#.m4a#?video_id=",
