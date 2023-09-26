@@ -29,17 +29,16 @@
 	{"name": "新浪资源","url": "https://api.xinlangapi.com/xinlangapi.php"},
 	{"name": "天空资源","url": "https://api.tiankongapi.com/api.php"},
 	{"name": "非凡资源","url": "http://cj.ffzyapi.com/api.php"},
-	{"name": "iKun资源","url": "https://ikunzyapi.com/api.php"},
 	{"name":"1080资源库","url":"https://api.1080zyku.com/inc/api_mac10.php"},
 	{"name":"U酷资源","url":"https://api.ukuapi.com/api.php"},
 	{"name":"快车资源(切)","url":"https://caiji.kczyapi.com/api.php"},
-	{"name":"新浪资源(切)","url":"http://api.xinlangapi.com/xinlangapi.php"},
 	{"name":"樱花资源","url":"https://m3u8.apiyhzy.com/api.php"},
-	{"name":"CK资源","url": "https://ckzy.me/api.php"},
 	{"name":"susong在线影视","url":"http://150.158.102.76/api.php/"},
 	{"name":"艾旦影视","url":"https://lovedan.net/api.php/"},
-	{"name":"最大资源","url":"http://zuidazy.me/api.php/"}, 
+	{"name":"最大资源","url":"https://api.zuidapi.com/api.php/"}, 
 	{"name":"ikun资源","url":"https://ikunzyapi.com/api.php/"},
+	{"name":"云解析资源网","url":"https://api.yparse.com/api/m3u8/json"},
+	{"name":"高清资源库","url":"https://api.1080zyku.com/inc/api_mac10.php"},
 	{"name":"TVB云播","url":"http://www.tvyb03.com/api.php/"}
 ],
 "去广告规则": [		
@@ -87,10 +86,12 @@
     ],
 "zhujiexi":[
 	{"name": "主解1","url": "http://27.124.4.42:4567/jhjson/ceshi.php?url="},
-	{"name": "主解1","url": "http://110.42.2.247:880/analysis/json/?uid=2056&my=efjkmvBGHILMSUWXY0&url="}
+	{"name": "主解2","url": "http://110.42.2.247:880/analysis/json/?uid=2056&my=efjkmvBGHILMSUWXY0&url="},
+	{"name": "主解3","url": "http://110.42.2.247:880/analysis/json/?uid=2449&my=acfgikquvzFGJRW459&url="}	
 ],
 "beiyongjiexi": [	
-	{"name":"备解1","url":"https://yparse.ik9.cc/index.php?url="}
+	{"name":"备解1","url":"https://yparse.ik9.cc/index.php?url="},
+	{"name":"备解2","url":"https://yparse.ik9.cc/index.php?url="}
 ],
 "dianshizhibo": "https://ghproxy.com/https:/raw.githubusercontent.com/ysztcn/ysztcn.github.io/master/biubiu/zb.txt",
 "嗅探词": "m3u8?#ixigua#.czspp#.m3u8#mp4#.flv#.mp3#.m4a#?video_id=",
@@ -105,7 +106,7 @@
     "访问请求cookie": "空",
     "嗅探词": "m3u8?#.m3u8#.mp4#.flv#.mp3#.m4a",
     "过滤词": "51.la#cnzz.com#baidu.com#bilibili.com",
-	"是否启用解析模式": "0",
+	"是否启用解析模式": "1",
     "禁用搜索": "1",
 	"列表起始页": "1",
     "列表分类": "说明$https://ghproxy.com/https://raw.githubusercontent.com/ysztcn/ysztcn.github.io/master/biubiu/shuju/1#解析测试$https://ghproxy.com/https://raw.githubusercontent.com/ysztcn/ysztcn.github.io/master/biubiu/shuju/2",
