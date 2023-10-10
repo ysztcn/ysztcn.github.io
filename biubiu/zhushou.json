@@ -13,13 +13,11 @@
 ],
 "zhuyejiekou": [
 	{"name":"555","url":"https://www.xawqxh.net/api.php/app/"},
-	{"name":"4k鸭奈飞","url":"https://yanetflix.me/api.php/app/"}, 
 	{"name":"明帝影视","url":"https://ys.md214.cn/api.php/app/"}, 
 	{"name":"天天影院","url":"https://www.ttmja.com/api.php/app/"},
 	{"name":"UM影院","url":"https://www.umkan.cc/mogai_api.php/v1.vod"},
 	{"name":"旧梦影视","url":"http://43.139.139.17:4433/api.php/app/"},
-	{"name":"大米星球","url":"https://dmdy2.vip/api.php/app/"},
-	{"name":"落攻阁影视网","url":"https://www.lggys.cn/api.php/app/"}
+	{"name":"大米星球","url":"https://dmdy2.vip/api.php/app/"}
 ],
 "caijizhan":[
 	{"name": "量子资源","url": "https://cj.lzcaiji.com/api.php"},
@@ -152,7 +150,7 @@
 	"列表链接": "href=\"$$\"",	
 	"搜索请求方式": "0",
 	"搜索模式": "1",
-	"搜索前": "/vod-search/-------------.html?wd=",
+	"搜索前": "/vod-so/-------------.html?wd=",
 	"搜索后": "",
 	"搜索连接后缀": "",
 	"搜索二次截取": "class=\"module-items$$id=\"footer",
@@ -189,7 +187,7 @@
 	"官源是否走解析": "0"
 	},
 	{"网站名字": "蓝光影院-*H",
-	"网站地址": "https://www.lgyy.vip",
+	"网站地址": "https://www.lgyy1.com",
 	"访问请求ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.50",
 	"访问请求cookie": "PHPSESSID$7d3kdb5p2oeg3fvu9frebfmsf7",
 	"访问请求referer": "空",
@@ -1222,7 +1220,7 @@
 
 	//0：不禁用，1：禁用
 	"禁用搜索": "0",
-
+	"搜索手动验证": "0",
 	//0：不启用，1：启用
 	"启用js加载源码": "0",
 	"js加载源码时间": "5",
@@ -1276,7 +1274,7 @@
 	"列表截取数组": "class=\"item\"$$</li>",
 	"列表图片前缀": "空",
 	"列表图片": "data-bg=\"$$\"",
-	"列表标题": "title=\"$$在线",
+	"列表标题": "title=\"$$\"",
 	"列表副标题": "class=\"desc\">$$</span>",
 	"列表链接": "href=\"$$\"",
 	"列表链接前缀": "空",
@@ -1286,13 +1284,13 @@
 	"搜索请求方式": "0",
 	"搜索模式": "1",
 	"搜索前": "/s----------.html?wd=",
-	"搜索后": "空",
+	"搜索后": "",
 	"搜索连接后缀": "/v/",
 	"搜索二次截取": "空",
 	"搜索截取数组": "class=\"item\"$$</li>",
 	"搜索图片前缀": "空",
 	"搜索图片": "data-bg=\"$$\"",
-	"搜索标题": "title=\"$$在线",
+	"搜索标题": "title=\"$$\"",
 	"搜索副标题": "class=\"desc\">$$</span>",
 	"搜索链接": "href=\"$$\"",
 	"搜索链接前缀": "空",
