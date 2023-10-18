@@ -92,7 +92,8 @@
 // *标识为有发布页
 // H标识为网页J标识为json
 // V标识为直接得到视频源不再嗅探
-// S表示搜索需要手动验证
+// Y标识为搜索需要手动验证
+// S表示支持单搜
 // W表示无法搜索
 	{"网站名字": "说明J",
     "网站地址": "",
@@ -130,7 +131,7 @@
 	"是否base64解码": "0",
 	"是否url解码": "1",
 	"官源是否走解析": "0"},
-	{"网站名字": "新视觉影院-*HVS",
+	{"网站名字": "新视觉影院-*HVY",
 	"网站地址": "https://www.6080yy3.com",
 	"访问请求ua": "空",
 	"访问请求cookie": "空",
@@ -194,7 +195,7 @@
 	"是否url解码": "0",
 	"官源是否走解析": "0"
 	},
-	{"网站名字": "动漫巴士-*H",
+	{"网站名字": "动漫巴士-*HS",
 	"网站地址": "https://dm84.tv",
 	"访问请求ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.50",
 	"访问请求cookie": "空",
@@ -301,7 +302,7 @@
 	"播放剧集链接前缀": "空",
 	"播放剧集链接后缀": "空"
 	},
-    {"网站名字": "蓝光影院-*H",
+    {"网站名字": "蓝光影院-*HY",
 	"网站地址": "https://www.lgyy1.com",
 	"访问请求ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.50",
 	"访问请求cookie": "PHPSESSID$7d3kdb5p2oeg3fvu9frebfmsf7",
@@ -451,7 +452,7 @@
 	"播放剧集链接": "href=\"$$\"",
 	"播放剧集链接前缀": "空",
 	"播放剧集链接后缀": "空"},
-	{"网站名字": "新尧影视-HV",
+	{"网站名字": "新尧影视-HVS",
 	"网站地址": "https://www.xinyaoys.com",
 	"访问请求ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.50",
 	"访问请求cookie": "空",
@@ -585,7 +586,7 @@
 
 	//0：不跳转，1：跳转
 	"播放页跳转看图": "0"},
-	{"网站名字": "777影视-*H",
+	{"网站名字": "777影视-*HS",
 	"网站地址": "https://www.777ys1.com",
 	"访问请求ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.50",
 	"访问请求cookie": "空",
@@ -719,7 +720,7 @@
 
 	//0：不跳转，1：跳转
 	"播放页跳转看图": "0"},
-	{"网站名字": "FREEOK-HVS",
+	{"网站名字": "FREEOK-HVY",
 	"网站地址": "https://www.freeok.vip",
 	"访问请求ua": "User-Agent$Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.150 Safari/537.36",
 	"访问请求cookie": "空",
@@ -907,7 +908,7 @@
 	"播放剧集链接前缀": "空",
 	"播放剧集链接后缀": "空",
 	"播放页跳转看图": "0"},
-	{"网站名字": "1080看-*HS",
+	{"网站名字": "1080看-*HY",
 	"网站地址": "https://www.1080kk.com",
 	"访问请求ua": "Mozilla/5.0 (Linux; Android 12; PFDM00) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.104 Mobile Safari/537.36",
 	"播放请求头": "User-Agent$123",
@@ -960,7 +961,7 @@
 	"是否base64解码": "0",
 	"是否url解码": "1",
 	"官源是否走解析": "0"},
-	{"网站名字": "影视工厂-*H",
+	{"网站名字": "影视工厂-*HY",
 	"网站地址": "https://www.ysgc2.cc",
 	"访问请求ua": "Mozilla/5.0 (Linux; Android 12; PFDM00) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.104 Mobile Safari/537.36",
 	"播放请求头": "referer$http://www.ysgc.fun/",
@@ -1440,11 +1441,12 @@
 	"播放剧集链接": "\"url\":\"$$\"",
 	"播放剧集链接前缀": "空",
 	"播放剧集链接后缀": "空"},
-	{"网站名字": "荐片-JV",
+	{"网站名字": "荐片-JVS",
 	"网站地址": "http://api2.rinhome.com",
 	"访问请求ua": "User-Agent$jianpian-android/350#Referer$http://api2.rinhome.com#JPAUTH$y261ow7kF2dtzlxh1GS9EB8nbTxNmaK/QQIAjctlKiEv#Host$api2.rinhome.com",
 	"播放请求头": "空",
-	"图片请求头": "User-Agent$jianpian-version353#Referer$www.jianpianapp.com#Host$img.acdn.axcxa.top",
+	"图片请求头": "User-Agent$jianpian-version353#Referer$www.jianpianapp.com#Host$images.nbddy.com",
+    "嗅探词": ".m3u8#.mp4#.mkv",
 	"嗅探词": ".m3u8#.mp4#.mkv",
 	"过滤词": ".css#.js#.jpg#.png#baidu.com#51.la#.gif",
 	"列表起始页": "1",
