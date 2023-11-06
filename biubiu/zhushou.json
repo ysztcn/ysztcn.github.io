@@ -1,4 +1,4 @@
-// 2023.10.30
+// 2023.11.3
 {
 "Home": [  
 	{"key":"历史","title":"观看记录","pic":"https://pic.imgdb.cn/item/641d51d6a682492fcc7ab0ce.png"},
@@ -17,15 +17,15 @@
 	{"name":"天天影院","url":"https://www.ttmja.com/api.php/app/"},
 	{"name":"UM影院","url":"https://www.umkan.cc/mogai_api.php/v1.vod"},
 	{"name":"旧梦影视","url":"http://43.139.139.17:4433/api.php/app/"},
-	{"name":"大米星球","url":"https://dmdy2.vip/api.php/app/"}
+	{"name":"MV_vod","url":"https://mv.wogg.link/mv/vod"},
+	{"name":"大米星球","url":"https://dmys6.com/api.php/app/"}
 ],
 "caijizhan":[
-	{"name": "小猫咪","url": "http://zy.xiaomaomi.cc/api.php"},
 	{"name": "量子资源","url": "https://cj.lzcaiji.com/api.php"},
 	{"name": "极速资源","url": "https://jszyapi.com/api.php"},
-	{"name": "红牛资源","url": "https://www.hongniuzy32.com/api.php"},
-	{"name": "百度资源","url": "https://api.apibdzy.com/api.php"},
-	{"name": "新浪资源","url": "https://api.xinlangapi.com/xinlangapi.php"},
+	{"name": "红牛资源","url": "https://www.hongniuzy2.com/api.php"},
+	{"name": "百度资源","url": "https://www.bdzy2.com/api.php"},
+	{"name": "新浪资源","url": "http://cj.xinlangzy.com/xinlangapi.php"},
 	{"name": "天空资源","url": "https://api.tiankongapi.com/api.php"},
 	{"name": "非凡资源","url": "http://www.ffzy.tv/api.php"},
 	{"name":"1080资源库","url":"https://api.1080zyku.com/inc/api_mac10.php"},
@@ -33,6 +33,7 @@
 	{"name":"快车资源(切)","url":"https://caiji.kczyapi.com/api.php"},
 	{"name":"susong在线影视","url":"http://150.158.102.76/api.php"},
 	{"name":"最大资源","url":"https://zuidazy.me/api.php"}, 
+	{"name":"电影雷达","url":"https://cms.fxfkfz.top/api.php"},
 	{"name":"ikun资源","url":"https://ikunzy.com//api.php/"},
 	{"name":"云解析资源网","url":"https://api.yparse.com/api/m3u8/json"},
 	{"name":"高清资源库","url":"https://api.1080zyku.com/inc/api_mac10.php"},
@@ -74,7 +75,7 @@
         }
     ],
 "zhujiexi":[
-	{"name": "主解1","url": "http://42.51.37.161:5678/json/520239app9/gf2.php?url="},
+	{"name": "主解1","url": "http://jx.lem.icu/api/?key=027181cefdc41cfdd2efa074f2fcf722&url="},
 	{"name": "主解2","url": "http://119.91.123.253:1234/Api/cs.php?url="},
 	{"name": "主解2","url": "https://dx.maclsj.com/blue/json.php?url="},
 	{"name": "主解2","url": "https://www.pouyun.com/?url="},
@@ -105,7 +106,7 @@
 	"是否启用解析模式": "0",
     "禁用搜索": "1",
 	"列表起始页": "1",
-    "列表分类": "说明$https://ghproxy.com/https://raw.githubusercontent.com/ysztcn/ysztcn.github.io/master/biubiu/shuju/1#解析测试$https://ghproxy.com/https://raw.githubusercontent.com/ysztcn/ysztcn.github.io/master/biubiu/shuju/2",
+    "列表分类": "说明$https://gh-proxy.com/https://raw.githubusercontent.com/ysztcn/ysztcn.github.io/master/biubiu/shuju/1#解析测试$https://gh-proxy.com/https://raw.githubusercontent.com/ysztcn/ysztcn.github.io/master/biubiu/shuju/2",
 	// http://10.1.0.10:8080/biubiu/shuju/2
     "列表后缀": ".json",
     "列表二次截取": "[$$]",
@@ -638,7 +639,7 @@
 	"播放剧集链接前缀": "空",
 	"播放剧集链接后缀": "空"},
 	{"网站名字": "大米星球-*H",
-	"网站地址": "https://dmx4.vip",
+	"网站地址": "https://dmys6.com",
 	"访问请求ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.50",
 	"访问请求cookie": "空",
 	"访问请求referer": "空",
@@ -947,7 +948,7 @@
 	//0：不跳转，1：跳转
 	"播放页跳转看图": "0"},
 	{"网站名字": "LIBVIO-*H",
-	"网站地址": "https://www.libvio.pro",
+	"网站地址": "https://www.libvio.me",
 	"访问请求ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.50",
 	"播放请求头": "User-Agent$123",
 	"启用js加载源码":"1",
