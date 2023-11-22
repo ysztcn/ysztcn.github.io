@@ -78,16 +78,22 @@
             "正则规则": ["video/tos/cn"]
         }
     ],
-"zhujiexi":[
-	{"name": "主解1","url": "http://jx.lem.icu/api/?key=027181cefdc41cfdd2efa074f2fcf722&url="},
-	{"name": "主解2","url": "http://119.91.123.253:1234/Api/cs.php?url="},
-	{"name": "主解2","url": "https://dx.maclsj.com/blue/json.php?url="},
-	{"name": "主解2","url": "https://www.pouyun.com/?url="},	
-	{"name": "主解3","url": "http://110.42.2.247:880/analysis/json/?uid=2449&my=acfgikquvzFGJRW459&url="}	
+"zhujiexi":[	
+	{"name": "无效","url": ""}	
 ],
 "beiyongjiexi": [	
-	{"name":"备解1","url":"https://jx.jsonplayer.com/player/?url=","user-agent": "Mozilla/5.0 (Linux; Android 13; V2049A Build/TP1A.220624.014; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/116.0.0.0 Mobile Safari/537.36"},
-	{"name":"备解1","url":"https://jx.xmflv.com/?url=","user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.57"}
+	{"name": "-全看-",
+	"url": "https://jx.quankan.app/?url=",
+	"ua": "Mozilla/5.0 (Linux; Android 13; V2049A Build/TP1A.220624.014; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/116.0.0.0 Mobile Safari/537.36"},   
+	{"name":"777",
+	"url":"https://jx.jsonplayer.com/player/?url=",
+	"ua": "Mozilla/5.0 (Linux; Android 13; V2049A Build/TP1A.220624.014; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/116.0.0.0 Mobile Safari/537.36"},
+	{"name": "-云解析-",
+	"url": "https://jx.yparse.com/index.php?url=",
+	"ua": "Mozilla/5.0 (Linux; Android 13; V2049A Build/TP1A.220624.014; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/116.0.0.0 Mobile Safari/537.36"},
+	{"name":"虾米",
+	"url":"https://jx.xmflv.com/?url=",
+	"ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.57"}
 ],
 "dianshizhibo": "https://gh-proxy.com/https:/raw.githubusercontent.com/ysztcn/ysztcn.github.io/master/biubiu/zb.txt",
 "嗅探词": "m3u8?#ixigua#.czspp#.m3u8#mp4#.flv#.mp3#.m4a#?video_id=",
