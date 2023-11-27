@@ -54,6 +54,7 @@
             "正则规则": [
                 "#EXT-X-DISCONTINUITY\\r*\\n*#EXTINF:6.433333,[\\s\\S]*?#EXT-X-DISCONTINUITY",
 				"#EXT-X-DISCONTINUITY\\r*\\n*#EXTINF:6.666667,[\\s\\S]*?#EXT-X-DISCONTINUITY",
+				"#EXT-X-DISCONTINUITY\\r*\\n*#EXTINF:7.300000,[\\s\\S]*?#EXT-X-DISCONTINUITY",
 				"#EXTINF.*?\\s+.*?11697777.*?\\.ts\\s+",
 				"#EXTINF.*?\\s+.*?1o.*?\\.ts\\s+"
             ]
@@ -95,7 +96,8 @@
 	"url":"https://jx.xmflv.com/?url=",
 	"ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 Edg/110.0.1587.57"}
 ],
-"dianshizhibo": "https://gh-proxy.com/https:/raw.githubusercontent.com/ysztcn/ysztcn.github.io/master/biubiu/zb.txt",
+"dianshizhibo": "https://ghproxy.liuzhicong.com/https://raw.githubusercontent.com/ysztcn/ysztcn.github.io/master/biubiu/zb.txt",
+//"dianshizhibo": "http://10.1.0.10:8080/biubiu/zb.txt",
 "嗅探词": "m3u8?#ixigua#.czspp#.m3u8#mp4#.flv#.mp3#.m4a#?video_id=",
 "guolvdizhi": "51.la#?url=#cnzz.com",
 "zidingyi": [
