@@ -21,12 +21,13 @@
 ],
 "caijizhan":[
 	{"name": "量子资源","url": "https://cj.lzcaiji.com/api.php"},
+	{"name": "非凡资源","url": "http://www.ffzy.tv/api.php"},
 	{"name": "极速资源","url": "https://jszyapi.com/api.php"},
 	{"name": "红牛资源","url": "https://www.hongniuzy2.com/api.php"},
+	{"name": "暴风资源","url": "https://bfzyapi.com/api.php"},
 	{"name": "百度资源","url": "https://www.bdzy2.com/api.php"},
 	{"name": "新浪资源","url": "http://cj.xinlangzy.com/xinlangapi.php"},
-	{"name": "天空资源","url": "https://api.tiankongapi.com/api.php"},
-	{"name": "非凡资源","url": "http://www.ffzy.tv/api.php"},
+	{"name": "天空资源","url": "https://api.tiankongapi.com/api.php"},	
 	{"name":"1080资源库","url":"https://api.1080zyku.com/inc/api_mac10.php"},
 	{"name":"U酷资源","url":"https://api.ukuapi.com/api.php"},
 	{"name":"快车资源(切)","url":"https://caiji.kczyapi.com/api.php"},
@@ -40,43 +41,33 @@
 	{"name":"TVB云播","url":"http://www.tvyb04.com/api.php"}
 ],
 "去广告规则": [		
-		{
-            "名字": "BF",
-            "寻找词": "bfzy#s5.bfzycdn",
-            "正则规则": [
-                "#EXT-X-DISCONTINUITY\\r*\\n*#EXTINF:3,[\\s\\S]*?#EXT-X-DISCONTINUITY",
-                "#EXTINF.*?\\s+.*?1o.*?\\.ts\\s+"
-            ]
+		{"名字": "暴风",
+		"寻找词": "bfzycdn",
+		"正则规则": [
+			"#EXT-X-DISCONTINUITY\\r*\\n*#EXTINF:3,[\\s\\S]*?#EXT-X-DISCONTINUITY",
+			"#EXTINF.*?\\s+.*?adjump.*?\\.ts\\s+"
+		]
         },
-		{
-            "名字": "量子非凡",
-            "寻找词": "vip.lz#hd.lz#v.cdnlz#vip.ffzy#hd.ffzy#vip.lz#hd.lz#.cdnlz#bfzy",
-            "正则规则": [
-                "#EXT-X-DISCONTINUITY\\r*\\n*#EXTINF:6.433333,[\\s\\S]*?#EXT-X-DISCONTINUITY",
-				"#EXT-X-DISCONTINUITY\\r*\\n*#EXTINF:6.666667,[\\s\\S]*?#EXT-X-DISCONTINUITY",
-				"#EXT-X-DISCONTINUITY\\r*\\n*#EXTINF:7.300000,[\\s\\S]*?#EXT-X-DISCONTINUITY",
-				"#EXTINF.*?\\s+.*?11697777.*?\\.ts\\s+",
-				"#EXTINF.*?\\s+.*?1o.*?\\.ts\\s+"
-            ]
+		{"名字": "非凡",
+		"寻找词": "vip.ffzy",
+		"正则规则": [
+			"#EXT-X-DISCONTINUITY\\r*\\n*#EXTINF:7.300000,[\\s\\S]*?#EXT-X-DISCONTINUITY",
+			"#EXTINF.*?\\s+.*?1o.*?\\.ts\\s+"
+		]
         },
-		{
-            "名字": "极速",
-            "寻找词": "jszy",
-            "正则规则": ["#EXT-X-DISCONTINUITY\\r*\\n*[\\s\\S]*?#EXT-X-DISCONTINUITY"]
+		{"名字": "量子",
+		"寻找词": "vip.lz#hd.lz#v.cdnlz#vip.lz#hd.lz#.cdnlz",
+		"正则规则": [
+			"#EXT-X-DISCONTINUITY\\r*\\n*#EXTINF:6.666667,[\\s\\S]*?#EXT-X-DISCONTINUITY",
+			"#EXTINF.*?\\s+.*?1o.*?\\.ts\\s+"
+		]
         },
-		{
-            "名字": "索尼",
-            "寻找词": "suonizy",
-            "正则规则": [
-			"15",
-			"15.2666",
-			"#EXTINF.*?\\s+.*?p1ayer.*?\\.ts\\s+"
-			]
-        },
-		{
-            "名字": "农民",
-            "寻找词": "toutiaovod.com",
-            "正则规则": ["video/tos/cn"]
+		{"名字": "索尼",
+		"寻找词": "suonizy",
+		"正则规则": [
+		"#EXT-X-DISCONTINUITY\\r*\\n*#EXTINF:1.040000,[\\s\\S]*?#EXT-X-DISCONTINUITY",
+		"#EXTINF.*?\\s+.*?original.*?\\.ts\\s+"
+		]
         }
     ],
 "zhujiexi":[	
