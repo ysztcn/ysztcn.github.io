@@ -25,6 +25,7 @@
 	{"name": "极速资源","url": "https://jszyapi.com/api.php"},
 	{"name": "红牛资源","url": "https://www.hongniuzy2.com/api.php"},
 	{"name": "暴风资源","url": "https://bfzyapi.com/api.php"},
+	{"name": "索尼资源","url": "https://suoniapi.com/api.php"},
 	{"name": "百度资源","url": "https://www.bdzy2.com/api.php"},
 	{"name": "新浪资源","url": "http://cj.xinlangzy.com/xinlangapi.php"},
 	{"name": "天空资源","url": "https://api.tiankongapi.com/api.php"},	
@@ -37,8 +38,7 @@
 	{"name":"ikun资源","url":"https://ikunzy.com//api.php/"},
 	{"name":"云解析资源网","url":"https://api.yparse.com/api/m3u8/json"},
 	{"name":"高清资源库","url":"https://api.1080zyku.com/inc/api_mac10.php"},
-	{"name":"394tv","url":"https://www.39kan.com/api.php"},
-	{"name":"TVB云播","url":"http://www.tvyb04.com/api.php"}
+	{"name":"394tv","url":"https://www.39kan.com/api.php"}
 ],
 "去广告规则": [		
 		{"名字": "暴风",
