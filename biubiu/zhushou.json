@@ -108,7 +108,7 @@
 	"是否启用解析模式": "0",
     "禁用搜索": "1",
 	"列表起始页": "1",
-    "列表分类": "说明$https://gh-proxy.com/https://raw.githubusercontent.com/ysztcn/ysztcn.github.io/master/biubiu/shuju/1#解析测试$https://gh-proxy.com/https://raw.githubusercontent.com/ysztcn/ysztcn.github.io/master/biubiu/shuju/2",
+    "列表分类": "说明$https://ghproxy.liuzhicong.com/https://raw.githubusercontent.com/ysztcn/ysztcn.github.io/master/biubiu/shuju/1#解析测试$https://ghproxy.liuzhicong.com/https://raw.githubusercontent.com/ysztcn/ysztcn.github.io/master/biubiu/shuju/2",
 	// http://10.1.0.10:8080/biubiu/shuju/2
     "列表后缀": ".json",
     "列表二次截取": "[$$]",
