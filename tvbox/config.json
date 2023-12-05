@@ -1,11 +1,11 @@
 {
     "wallpaper": "https://picsum.photos/1280/720/?blur=2",
-    "spider": "./jar/fm_spider.jar",
+    "spider": "./jar/spider.jar",
     "lives": [
         {
-            "name": "在线",
+            "name": "直播",
             "type": 0,
-            "url": "./lives/tv.txt",
+            "url": "./lives/zb.txt",
             "epg": "https://epg.112114.xyz/?ch={name}&date={date}"
         }
     ],
@@ -52,40 +52,53 @@
             "ext": "./js/mgtv.js"
         },
 		{
-		  "key": "易搜",
-		  "name": "易搜",
-		  "type": 3,
-		  "api": "csp_YiSo",
-		  "searchable": 1,
-		  "changeable": 0
-		},
-		{
-		  "key": "雲搜",
-		  "name": "雲搜",
-		  "type": 3,
-		  "api": "csp_UpYun",
-		  "searchable": 1,
-		  "changeable": 0
-		},
-		{
-		  "key": "盤搜",
-		  "name": "盤搜",
-		  "type": 3,
-		  "api": "csp_PanSou",
-		  "searchable": 1,
-		  "changeable": 0
-		},
-		{
-		  "key": "盤搜索",
-		  "name": "盤搜索",
-		  "type": 3,
-		  "api": "csp_PanSearch",
-		  "searchable": 1,
-		  "changeable": 0
-		}
+            "key": "csp_Zhaozy",
+            "name": "📀找资源(搜索)",
+            "type": 3,
+            "api": "csp_Zhaozy",
+            "searchable": 1,
+            "quickSearch": 1,
+            "filterable": 0,
+            "ext": "yingshi$$$abcd1234"
+        },
+        {
+            "key": "csp_AliPS",
+            "name": "📀喵狸盘搜(搜索)",
+            "type": 3,
+            "api": "csp_AliPS",
+            "searchable": 1,
+            "quickSearch": 1,
+            "filterable": 0,
+            "ext": "http://127.0.0.1:9978/file/tvboxqq/token.txt"
+        },
+        {
+            "key": "csp_Yisou",
+            "name": "📀易搜(搜索)",
+            "type": 3,
+            "api": "csp_Yisou",
+            "searchable": 1,
+            "quickSearch": 1,
+            "filterable": 0,
+            "ext": "http://127.0.0.1:9978/file/tvboxqq/token.txt"
+        },
+        {
+            "key": "csp_Upyunso",
+            "name": "📀UP云搜(搜索)",
+            "type": 3,
+            "api": "csp_Upyunso",
+            "searchable": 1,
+            "quickSearch": 1,
+            "filterable": 0,
+            "ext": "http://127.0.0.1:9978/file/tvboxqq/token.txt"
+        }
     ],
     "parses": [
         {
+            "name": "Web聚合",
+            "type": 3,
+            "url": "Web"
+        },
+		{
             "name": "-全看-",
             "type": 0,
             "url": "https://jx.quankan.app/?url=",
