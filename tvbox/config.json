@@ -9,6 +9,16 @@
         }
     ],
     "sites": [
+		{"key": "csp_KungFu404",
+		  "name": "设置阿里云盘Token",
+		  "type": 3,
+		  "api": "csp_KungFu404",
+		  "searchable": 0,
+		  "filterable": 0,
+		  "changeable": 0,
+		  "ext": "http://127.0.0.1:9978/file/tvbox/tok.txt",
+		  "jar": "./jar/alibaba.jar"
+		},
 		{   "key": "drpy_js_douban",
             "name": "豆瓣",
             "type": 3,
@@ -46,7 +56,7 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 0,
-            "ext": "http://127.0.0.1:9978/file/tvfan/token.txt+4k|auto|fhd$$$https://api.wogg.xyz/$$$弹"
+            "ext": "http://127.0.0.1:9978/file/tvbox/tok.txt+4k|auto|fhd$$$https://api.wogg.xyz/$$$弹"
         },
 		{
             "key": "drpy_js_荐片",
@@ -83,7 +93,7 @@
             "quickSearch": 1,
             "changeable": 1
         },
-		{   "key": "DiDuan_低端",
+		{   "key": "Ddrk_低端",
             "name": "低端",
             "type": 3,
             "api": "csp_Ddrk",
@@ -101,7 +111,7 @@
             "changeable": 1,
             "ext": "./json/nmys.json"
         },
-		{	"key": "Xinsj——新视觉",
+		{	"key": "Xinsj_新视觉",
             "name": "新视觉",
             "type": 3,
             "api": "csp_Xinsj",
@@ -110,7 +120,7 @@
             "changeable": 1,
             "ext": "https://www.hdmyy.com/"
         },
-		{   "key": "csp_XYQHiker_哔嘀影视",
+		{   "key": "XYQHiker_哔嘀影视",
             "name": "哔嘀影视",
             "type": 3,
             "api": "csp_XYQHiker",
@@ -127,7 +137,7 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 0,
-            "ext": "http://127.0.0.1:9978/file/tvfan/token.txt+4k|auto|fhd"
+            "ext": "http://127.0.0.1:9978/file/tvbox/tok.txt+4k|auto|fhd"
         },
         {   "key": "Zhaozy_找资源",
             "name": "🐺找资源┃搜索",
@@ -136,7 +146,7 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 0,
-            "ext": "http://127.0.0.1:9978/file/tvfan/token.txt+4k|auto|fhd$$$fanty$$$qqq111"
+            "ext": "http://127.0.0.1:9978/file/tvbox/tok.txt+4k|auto|fhd$$$fanty$$$qqq111"
         },
         {   "key": "PanSou_盘搜",
             "name": "🦊盘搜┃搜索",
@@ -145,7 +155,7 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 0,
-            "ext": "http://127.0.0.1:9978/file/tvfan/token.txt+4k|auto|fhd"
+            "ext": "http://127.0.0.1:9978/file/tvbox/tok.txt+4k|auto|fhd"
         },
         {   "key": "UpYun_Up搜",
             "name": "😻Up搜┃搜索",
@@ -154,7 +164,7 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 0,
-            "ext": "http://127.0.0.1:9978/file/tvfan/token.txt+4k|auto|fhd"
+            "ext": "http://127.0.0.1:9978/file/tvbox/tok.txt+4k|auto|fhd"
         },
         {   "key": "PanSearch_盘Se",
             "name": "🙀盘Se┃搜索",
@@ -163,7 +173,7 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 0,
-            "ext": "http://127.0.0.1:9978/file/tvfan/token.txt+4k|auto|fhd"
+            "ext": "http://127.0.0.1:9978/file/tvbox/tok.txt+4k|auto|fhd"
         },
         {   "key": "Dovx_七夜",
             "name": "😾七夜┃搜索",
@@ -172,7 +182,7 @@
             "searchable": 1,
             "quickSearch": 1,
             "changeable": 0,
-            "ext": "http://127.0.0.1:9978/file/tvfan/token.txt+4k|auto|fhd"
+            "ext": "http://127.0.0.1:9978/file/tvbox/tok.txt+4k|auto|fhd"
         },
 		{   "key": "push_agent",
             "name": "🛴手机┃推送",
@@ -180,7 +190,7 @@
             "api": "csp_Push",
             "searchable": 0,
             "quickSearch": 0,
-            "ext": "http://127.0.0.1:9978/file/tvfan/token.txt+4k|auto|fhd"
+            "ext": "http://127.0.0.1:9978/file/tvbox/tok.txt+4k|auto|fhd"
         }
     ],
     "parses": [
