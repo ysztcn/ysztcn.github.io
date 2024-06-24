@@ -135,7 +135,7 @@
 			  "播放二次截取": "",
 			  "播放列表": "<li&&</li",
 			  "播放标题": "copy_text\">&&<span class=\"hidden-xs",
-			  "播放链接": "https://m.ivdy.com/vod/play/+ href=\"&&\"[替换:/index.php/vod/play/id/>>空#sid/>>空#nid/>>空#.html>>空]",
+			  "播放链接": "https://www.ivdy.com/vod/play/+ href=\"&&\"[替换:/index.php/vod/play/id/>>空#sid/>>空#nid/>>空#.html>>空]",
 			  "嗅探词": ".m3u8",
 			  "图片代理":1,
 			  "播放请求头": "User-Agent$Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36#Origin$www.whbax.cn#Referer$www.whbax.cn#Cookie$PHPSESSID=7da46a353cf8bac46b4f8226f06042ad",
@@ -797,7 +797,7 @@
 			"api": "csp_XYQHikerAL",
 			"filterable": 1,
 			"jar": "./jar/xyq.jar",
-			"ext": "./XYQHiker/玩偶哥哥.json"
+			"ext": "./XYQHiker/玩我哥哥.json"
 		},
 		{   "key": "drpy_js_iqiyi",
 			"name": "🌐爱奇异-官网",
@@ -1291,7 +1291,11 @@
 			"type": 0,
 			"url": "https://jx.xmflv.com/?url="
 		},
-		{"name":"肥猫json",
+		{	"name": "晓成j",
+			"type": 1,
+			"url": "https://svip.cygc.xyz/api/?key=cygctest&url="
+		},
+		{"name":"肥猫j",
 		  "type": 1,
 		  "url": "http://json.84jia.com/home/api?type=ys&uid=335253&key=demprsyzBMQRVY0234&url="
 		}
