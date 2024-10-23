@@ -1,0 +1,23 @@
+{
+"站名": "剧白白",
+  "主页url": "https://www.jubaibaib.com",
+  "分类": "电影$dianying#连续剧$lianxuju#综艺$zongyi#动漫$dongman",
+  "分类url": "https://www.jubaibaib.com/s/{cateId}/page/{catePg}.html",
+  "数组": "\u003cli class\u003d\"mo-paxs-5px\u0026\u0026\u003c/li\u003e",
+  "标题": "mo-wrap-arow\" href\u003d*\u003e\u0026\u0026\u003c/a\u003e",
+  "副标题": "mo-coxs-center\"\u003e\u0026\u0026\u003c/span\u003e",
+  "搜索模式": "1",
+  "搜索url": "/vodsearch/-------------.html?wd\u003d{wd}",
+  "搜索数组": "\u003cdt class\u003d\"mo-paxs-5px\u0026\u0026\u003c/dl\u003e",
+  "搜索标题": "mo-fssm-18px\"\u003e*\u003e\u0026\u0026\u003c/a\u003e",
+  "搜索副标题": "mo-coxs-center\"\u003e\u0026\u0026\u003c/span\u003e",
+  "影片年代": "年份:\u0026\u0026\u003c/li\u003e",
+  "影片地区": "地区:\u0026\u0026\u003c/li\u003e",
+  "影片类型": "分类:\u0026\u0026\u003c/li\u003e[替换: \u003e\u003e空]",
+  "导演": "导演:\u0026\u0026\u003c/li\u003e",
+  "主演": "主演:\u0026\u0026\u003c/li\u003e",
+  "简介": "简介:\u0026\u0026\u003c/li\u003e",
+  "线路数组": "mo-icon-wjm3u8\"\u003e\u003c/i\u0026\u0026/a\u003e",
+  "线路标题": "\u003e\u0026\u0026\u003c",
+  "播放数组": "\u003cul class\u003d\"mo-movs-item\u0026\u0026\u003c/ul\u003e"
+}

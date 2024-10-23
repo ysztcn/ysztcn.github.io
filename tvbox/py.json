@@ -1,0 +1,64 @@
+{
+  "spider": "./jar/fm.jar",
+  "wallpaper": "https://深色壁纸.xxooo.cf/",
+  "sites": [
+	{
+      "key": "苹果",
+      "name": "🍎┃苹果┃影视",
+      "type": 3,
+      "api": "./py/小苹果.py",
+      "indexs": 1,
+      "searchable": 0,
+      "quickSearch": 0,
+      "changeable": 0
+    },
+	{
+		"key": "金牌",
+		"name": "🥇️┃金牌┃影视",
+		"type": 3,
+		"api": "./PY/金牌.py",
+		"searchable": 1,
+		"quickSearch": 1,
+		"filterable": 1,
+		"changeable": 1
+	},
+	{
+		"key": "永乐视频",
+		"name": "😆┃永乐┃视频",
+		"type": 3,
+		"api": "./PY/永乐视频.py",
+		"searchable": 1,
+		"quickSearch": 1,
+		"filterable": 1,
+		"changeable": 1
+	},	
+	{
+		"key": "Dm84",
+		"name": "🤣┃动漫┃巴士",
+		"type": 3,
+		"api": "./PY/动漫巴士.py",
+		"searchable": 1,
+		"quickSearch": 1,
+		"filterable": 1,
+		"changeable": 1
+	}	
+  ],
+  "logo": "https://s1.imagehub.cc/images/2025/01/15/e8b21391c58ed454c13ade26c003e857.gif",
+  "lives": [
+    {
+      "name": "V4聚合（卡顿请按左┃右键换线）",
+      "type": 0,
+      "url": "./lib/tv.m3u",
+      "playerType": 2,
+      "epg": "http://epg.51zmt.top:8000/api/diyp/?ch={name}&date={date}",
+      "logo": "https://epg.v1.mk/logo/{name}.png"
+    },
+    {
+      "name": "平台直播",
+      "type": 0,
+      "url": "http://tv.iill.top/m3u/Live",
+      "ua": "okhttp/3.15",
+      "playerType": 2
+    }
+  ]
+}

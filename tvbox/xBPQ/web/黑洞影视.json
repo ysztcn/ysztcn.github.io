@@ -1,0 +1,22 @@
+{
+"key": "csp_xBPQ_黑洞影视",
+"name": "黑影视",
+"type": 3,
+"api": "csp_xBPQ",
+"searchable": 1,
+"quickSearch": 1,
+"filterable": 0,
+"ext": "{
+\"免嗅\":\"0\",
+\"副标题\":\"class=\\\"hl-lc-1 remarks\\\">&&</span>\",
+\"导演\": \"导演：&&</div\",
+\"主演\": \"主演：&&</div\",
+\"简介\": \"简介：&&</li>\",
+\"播放标题\":\">&&<\",
+\"播放数组\":\"hl-list-wrap&&</div>\",
+\"分类\":\"电视剧$2#动漫$4#电影$1#综艺$3\",
+\"分类url\":\"https://www.nulltm.com/vodshow/{cateId}--------{catePg}---.html\",
+\"年份\":\"2000-2022\",
+\"筛选\":\"0\"
+}",
+"jar":"clan://xBPQ.jar"},
