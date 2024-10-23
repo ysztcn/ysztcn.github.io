@@ -1,0 +1,8 @@
+{
+		"站名": "速度",
+		"嗅探词": ".mp4#m3u8",
+		"主页url": "http://sudu.hdvod.top",
+		"分类": "电影$1#电视剧$2#综艺$4#动漫$3",
+		"分类url": "http://sudu.hdvod.top/index.php/vod/show/area/{area}/id/{cateId}/page/{catePg}/year/{year}.html;;val",
+		"跳转播放链接": "vod_class*url\":\"&&\""
+}
