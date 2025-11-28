@@ -55,7 +55,7 @@ class Vod:
         self.debug = False
         self.name = 'dm84'
         self.error_play_url = 'https://sf1-cdn-tos.huoshanstatic.com/obj/media-fe/xgplayer_doc_video/mp4/xgplayer-demo-720p.mp4'
-        self.home_url = 'https://dm84.net'
+        self.home_url = 'https://dm84.tv'
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Mobile Safari/537.36",
             "accept-language": "zh-CN,zh;q=0.9"
