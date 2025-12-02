@@ -101,7 +101,8 @@ class Spider(Spider):
         rsp = self.fetch(f'{self.host}/api.php/v3.vod/androiddetail2?vod_id={ids[0]}', headers=self.headers).json()
         v = rsp['data']
         vod = {
-            'vod_year':v.get('year'),
+            'vod_name':v.get('name'),
+			'vod_year':v.get('year'),
             'vod_area':v.get('area'),
             'vod_lang':v.get('lang'),
             'type_name':v.get('className'),
