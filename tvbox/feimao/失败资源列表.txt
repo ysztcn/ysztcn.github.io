@@ -1,0 +1,4 @@
+https://gitee.com/PizazzXS/another-d/raw/master/movie/py/LSYS.py
+https://gitee.com/PizazzXS/another-d/raw/master/movie/py/HMDJ.py
+http://bili.json
+http://127.0.0.1:9978/file/fatcat/kk.txt

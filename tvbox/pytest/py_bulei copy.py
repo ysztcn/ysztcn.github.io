@@ -1,0 +1,290 @@
+# coding=utf-8
+#!/usr/bin/python
+import sys
+
+sys.path.append("..")
+from base.spider import Spider
+import base64
+import re
+import requests
+import json
+from Crypto.Cipher import AES
+
+
+class Spider(Spider):  # 元类 默认的元类 type
+    host = "http://kan.bulei.cc"
+
+    header = {
+        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1",
+        "Referer": host,
+    }
+    cookies = {}
+
+    def GetHtml(self, url):
+        html = self.fetch(url, headers=self.header, cookies=self.cookies)
+
+        if html.text.find("系统安全验证") > 0 or html.text.find("输入验证码") > 0:
+            i = 0
+            while i < 3:
+                imgRsp = self.fetch(
+                    self.host + "/index.php/verify/index.html",
+                    {},
+                    {},
+                )
+                self.cookies.clear()
+                cookies = imgRsp.cookies.items()
+                for name, value in cookies:
+                    self.cookies[name] = value
+                try:
+                    print("通过drpy_ocr验证码接口过验证...")
+                    code = self.post(
+                        "http://drpy.nokia.press:8028/ocr/drpy/text",
+                        data={"img": base64.b64encode(imgRsp.content)},
+                    )
+                    rsp = self.postJson(
+                        self.host + "/index.php/ajax/verify_check",
+                        {"type": "show", "verify": code.text},
+                        self.header,
+                        self.cookies,
+                    )
+                    jrsp = json.loads(rsp.text)
+                    if jrsp["msg"] == "ok":
+                        html = self.fetch(
+                            url, headers=self.header, cookies=self.cookies
+                        )
+                        return html
+                except Exception as e:
+                    print("OCR识别验证码发生错误:{0}".format(e))
+                i += 1
+        return html
+
+    def getName(self):
+        return "BuLei"
+
+    def init(self, extend=""):
+        print("============{0}============".format(extend))
+        pass
+
+    def isVideoFormat(self, url):
+        pass
+
+    def manualVideoCheck(self):
+        pass
+
+    def homeContent(self, filter):
+        # https://meijuchong.cc/
+        result = {}
+        cateManual = {
+            "电影": "1",
+            "电视剧": "2",
+            "综艺": "3",
+            "动漫": "4",
+            "欧美剧": "5",
+            "日韩剧": "21",
+            "港台剧": "22",
+        }
+        classes = []
+        for k in cateManual:
+            classes.append({"type_name": k, "type_id": cateManual[k]})
+        result["class"] = classes
+        result["filters"] = {}
+        return result
+
+    def homeVideoContent(self):
+        rsp = self.fetch(self.host, headers=self.header)
+        root = self.html(rsp.text)
+        vodList = root.xpath("//div[contains(@class,'mi_ne_kd leibox')]/ul/li")
+        videos = []
+        for vod in vodList:
+            name = vod.xpath("./h3/a/text()")[0]
+            pic = vod.xpath(".//img/@data-original")[0]
+            pic = self.regStr(pic, "\\S*(http\\S+)")
+            mark = vod.xpath(".//div[contains(@class,'jidi')]/span/text()")
+
+            if mark == []:
+                mark = vod.xpath("./div[contains(@class,'hdinfo')]/span/text()")
+            if mark == []:
+                mark = [""]
+            mark = mark[0]
+            sid = vod.xpath("./a/@href")[0]
+            sid = self.regStr(sid, "/movie/(\\S+).html")
+            videos.append(
+                {"vod_id": sid, "vod_name": name, "vod_pic": pic, "vod_remarks": mark}
+            )
+        result = {"list": videos}
+        return result
+
+    def categoryContent(self, tid, pg, filter, extend):
+        result = {}
+        url = self.host + "/index.php/vod/show/by/time/id/{0}/page/{1}.html".format(
+            tid, pg
+        )
+
+        rsp = self.GetHtml(url)
+        root = self.html(rsp.text)
+        vodList = root.xpath("//a[contains(@class, 'module-item')]")
+        videos = []
+        for vod in vodList:
+            name = vod.xpath("./@title")[0]
+            pic = vod.xpath(".//img/@data-original")[0]
+            pic = self.regStr(pic, "\\S*(http\\S+)")
+            mark = vod.xpath(".//div[contains(@class,'module-item-note')]/text()")
+            if mark == []:
+                mark = [""]
+            mark = mark[0]
+            sid = vod.xpath("./@href")[0]
+            sid = self.regStr(sid, "/index.php/vod/detail/id/(\\S+).html")
+            videos.append(
+                {"vod_id": sid, "vod_name": name, "vod_pic": pic, "vod_remarks": mark}
+            )
+        result["list"] = videos
+        result["page"] = pg
+        result["pagecount"] = 9999
+        result["limit"] = 90
+        result["total"] = 999999
+        return result
+
+    def detailContent(self, array):
+        tid = array[0]
+        url = self.host + "/movie/{0}.html".format(tid)
+        rsp = self.fetch(url, headers=self.header)
+        root = self.html(rsp.text)
+        node = root.xpath("//body")[0]
+        title = node.xpath(".//div[@class='moviedteail_tt']/h1/text()")[0]
+        pic = root.xpath(".//div[contains(@class,'dyimg')]/img/@src")[0]
+        vod = {
+            "vod_id": tid,
+            "vod_name": title,
+            "vod_pic": pic,
+            "type_name": "",
+            "vod_year": "",
+            "vod_area": "",
+            "vod_remarks": "",
+            "vod_actor": "",
+            "vod_director": "",
+            "vod_content": "",
+        }
+
+        vod["type_name"] = ",".join(
+            node.xpath(
+                "//ul[contains(@class,'moviedteail_list')]/li[contains(text(),'类型')]//text()"
+            )
+        ).replace("类型：,", "")
+        vod["vod_year"] = ",".join(
+            node.xpath(
+                "//ul[contains(@class,'moviedteail_list')]/li[contains(text(),'年份')]//text()"
+            )
+        ).replace("年份：,", "")
+        vod["vod_area"] = ",".join(
+            node.xpath(
+                "//ul[contains(@class,'moviedteail_list')]/li[contains(text(),'地区')]//text()"
+            )
+        ).replace("地区：,", "")
+        vod["vod_actor"] = ",".join(
+            node.xpath(
+                "//ul[contains(@class,'moviedteail_list')]/li[contains(text(),'主演')]//text()"
+            )
+        ).replace("主演：,", "")
+        vod["vod_director"] = ",".join(
+            node.xpath(
+                "//ul[contains(@class,'moviedteail_list')]/li[contains(text(),'导演')]//text()"
+            )
+        ).replace("导演：,", "")
+
+        vod["vod_content"] = (
+            node.xpath(".//div[contains(@class,'yp_context')]/p//text()")[0]
+            .replace("\n", "")
+            .replace("\t", "")
+        )
+
+        playFrom = []
+        vodHeader = root.xpath(
+            ".//div[contains(@class,'mi_paly_box')]/div/div[contains(@class,'ypxingq_t')]/text()"
+        )
+        for v in vodHeader:
+            playFrom.append(v.strip())
+        vod_play_from = "$$$".join(playFrom)
+
+        playList = []
+        vodList = root.xpath(
+            ".//div[contains(@class,'mi_paly_box')]/div/div[contains(@class,'paly_list_btn')]"
+        )
+        for vl in vodList:
+            vodItems = []
+            aList = vl.xpath("./a")
+            for tA in aList:
+                href = tA.xpath("./@href")[0]
+                name = tA.xpath("./text()")[0]
+                tId = self.regStr(href, "/v_play/(\\S+).html")
+                vodItems.append(name + "$" + tId)
+            joinStr = "#".join(vodItems)
+            playList.append(joinStr)
+        vod_play_url = "$$$".join(playList)
+
+        vod["vod_play_from"] = vod_play_from
+        vod["vod_play_url"] = vod_play_url
+
+        result = {"list": [vod]}
+        return result
+
+    def searchContent(self, key, quick):
+        url = self.host + "/index.php/ajax/suggest?mid=1&wd={0}".format(key)
+        rsp = self.fetch(url,headers=self.header)
+        jo = json.loads(rsp.text)
+        vodList = jo['list']
+        videos = []
+        for vod in vodList:
+            videos.append({
+                "vod_id":vod['id'],
+                "vod_name":vod['name'],
+                "vod_pic":vod['pic'],
+                "vod_remarks":''
+            })
+        result = {
+            'list':videos
+        }
+        return result
+
+    def playerContent(self, flag, id, vipFlags):
+        # https://meijuchong.cc/static/js/playerconfig.js
+        result = {}
+        url = self.host + "/v_play/{0}.html".format(id)
+        rsp = self.fetch(url, headers=self.header)
+        m = re.search(
+            'var.*="(\\S+)?";.*parse\\("(\\S+)"\\).*parse\\((\\S+)\\)', rsp.text
+        )
+        if m:
+            enstr = m.group(1)
+            key = m.group(2)
+            iv = m.group(3)
+        root = self.AES_Decrypt(enstr, key, iv)
+
+        targetUrl = self.regStr(root, 'url: "(\\S+?)"')
+
+        result["parse"] = 0
+        result["playUrl"] = ""
+        result["url"] = targetUrl
+        result["header"] = ""
+
+        return result
+
+    def AES_Decrypt(self, ciphertext, key, iv):
+        try:
+            cipher = AES.new(key.encode(), AES.MODE_CBC, iv.encode())
+            ct = base64.b64decode(
+                ciphertext.encode()
+            )  # base64解码之后输出：b'x\x15\xc5\x0b\xae\xe9\x16\x06\xe2q\xab\xc5\xdd\xdf\xa1\x93'
+            pt = cipher.decrypt(
+                ct
+            )  # 解密之后输出：b'China\xe4\xb8\xad\xe5\x9b\xbd\x05\x05\x05\x05\x05'
+            pt = pt.decode(
+                "UTF-8"
+            )  # 解码之后输出：China中国。注意：此时虽然看到的是“China中国”，其实后面还有填充字符，只不过看不见而已！！！
+            # ord函数就是把unicode字符转化为对应的ASCII码，比如'a' -> 97, 'A' -> 65
+            pt = pt[0 : -ord(pt[-1])]  # 删除填充之后输出：China中国
+            return pt
+        except (ValueError, KeyError):
+            return ""
+
+    def localProxy(self, param):
+        return [200, "video/MP2T", action, ""]
