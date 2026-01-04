@@ -12,7 +12,9 @@
 # by @嗷呜
 import sys
 import time
-sys.path.append('..')
+from pathlib import Path
+root = Path(__file__).parent.parent.resolve()
+sys.path.insert(0, str(root))  
 from base.spider import Spider
 
 class Spider(Spider):
@@ -25,6 +27,8 @@ class Spider(Spider):
 
     def manualVideoCheck(self):
         pass
+    def getName(self):
+        return "小苹果"
 
     def destroy(self):
         pass
