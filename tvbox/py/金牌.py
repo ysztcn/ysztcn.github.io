@@ -9,7 +9,9 @@ import time
 import requests
 import re
 import json
-sys.path.append('..')
+from pathlib import Path
+root = Path(__file__).parent.parent.resolve()
+sys.path.insert(0, str(root))  
 from base.spider import Spider
 
 

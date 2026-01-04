@@ -11,7 +11,9 @@ from bs4 import BeautifulSoup
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-sys.path.append('..')
+from pathlib import Path
+root = Path(__file__).parent.parent.resolve()
+sys.path.insert(0, str(root))  
 from base.spider import Spider
 
 class Spider(Spider):
