@@ -1,7 +1,7 @@
 {
   "spider": "./custom_spider.jar",
   "wallpaper": "https://深色壁纸.xxooo.cf/",
-  "sites": [
+  "sites": [	
 	{	"key": "苹果",
         "name": "🍎┃苹果┃影视",
         "type": 3,
@@ -22,7 +22,12 @@
 		"type": 3,
 		"api": "./py/动漫巴士.py"
 	},
-	{   "key": "量子采集",
+	{	"key": "🦛河马短剧",
+        "name": "河马短剧",
+        "type": 3,
+        "api": "./py/河马短剧.py"
+    },
+	{   "key": "⚛️​量子采集",
 		"name": "量子采集",
 		"type": 1,
 		"api": "http://cj.lziapi.com/api.php/provide/vod/",
@@ -57,7 +62,7 @@
 			"短剧"
 		]
 	},
-	{   "key": "暴风采集",
+	{   "key": "🌀暴风采集",
 		"name": "暴风采集",
 		"type": 1,
 		"api": "https://bfzyapi.com/api.php/provide/vod/",
@@ -103,7 +108,7 @@
 			"福利"
 		]
 	},
-	{   "key": "非凡采集",
+	{   "key": "🌟非凡采集",
 		"name": "非凡采集",
 		"type": 1,
 		"api": "http://ffzy.tv/api.php/provide/vod/",
@@ -136,7 +141,7 @@
 			"短剧"
 		]
 	},
-	{   "key": "红牛采集",
+	{   "key": "🐂红牛采集",
 		"name": "红牛采集",
 		"type": 1,
 		"api": "https://www.hongniuzy2.com/api.php/provide/vod/",
@@ -164,7 +169,7 @@
 			"预告片"
 		]
 	},
-	{   "key": "新浪采集",
+	{   "key": "🌊新浪采集",
 		"name": "新浪采集",
 		"type": 1,
 		"api": "https://api.xinlangapi.com/xinlangapi.php/provide/vod",
@@ -192,7 +197,12 @@
 			"短剧",
 			"预告片"
 		]
-	}
+	},
+	{	"key": "test",
+        "name": "test",
+        "type": 3,
+        "api": "./py/LIBVIO.py"
+    }
  ],
   "logo": "https://s1.imagehub.cc/images/2025/01/15/e8b21391c58ed454c13ade26c003e857.gif",
   "lives": [
