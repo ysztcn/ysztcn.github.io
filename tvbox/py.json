@@ -2,6 +2,17 @@
   "spider": "./custom_spider.jar",
   "wallpaper": "https://深色壁纸.xxooo.cf/",
   "sites": [	
+	{
+      "key": "豆瓣",
+      "name": "豆瓣推荐",
+      "type": 3,
+      "api": "csp_DouDouGuard",
+	  "jar": "./fty/8b312080f190b1128abf9159f3a41965.jpg",
+      "indexs": 1,
+      "searchable": 0,
+      "quickSearch": 0,
+      "changeable": 0
+    },
 	{	"key": "苹果",
         "name": "🍎┃苹果┃影视",
         "type": 3,
