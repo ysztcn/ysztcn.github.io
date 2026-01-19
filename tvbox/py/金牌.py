@@ -9,6 +9,7 @@ import time
 import requests
 import re
 import json
+
 from pathlib import Path
 root = Path(__file__).parent.parent.resolve()
 sys.path.insert(0, str(root))  
@@ -17,10 +18,10 @@ from base.spider import Spider
 
 class Spider(Spider):
     def getName(self):
-        return "Aidianying"
+        return "金牌"
 
-    def init(self, extend):
-        self.home_url = 'https://www.hkybqufgh.com'
+    def init(self, extend=""):
+        self.home_url = 'https://www.sdzhgt.com/'
         self.ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
         self.error_url = "https://sf1-cdn-tos.huoshanstatic.com/obj/media-fe/xgplayer_doc_video/mp4/xgplayer-demo-720p.mp4"
 
@@ -29,16 +30,15 @@ class Spider(Spider):
 
     def isVideoFormat(self, url):
         pass
-
     def manualVideoCheck(self):
         pass
 
     def homeContent(self, filter):
         return {
             'class': [{'type_id': '1', 'type_name': '电影'},
-          {'type_id': '2', 'type_name': '电视剧'},
-          {'type_id': '3', 'type_name': '综艺'},
-          {'type_id': '4', 'type_name': '动漫'}],
+						{'type_id': '2', 'type_name': '电视剧'},
+						{'type_id': '3', 'type_name': '综艺'},
+						{'type_id': '4', 'type_name': '动漫'}],
             'filters': {
 			'1': [
 				{'key': 'type',
@@ -250,7 +250,7 @@ class Spider(Spider):
 				{'key': 'year',
 				 'name': '时间',
 				 'value': [{'n': '全部', 'v': ''},
-						   {'n': '2024', 'v': '/year/2024'},
+              			   {'n': '2025', 'v': '/year/2025'},
 						   {'n': '2023', 'v': '/year/2023'},
 						   {'n': '2022', 'v': '/year/2022'},
 						   {'n': '2021', 'v': '/year/2021'},
@@ -280,13 +280,15 @@ class Spider(Spider):
 						   {'n': '评分高低', 'v': '/sortType/4/sortOrder/0'}]}
 			]
 			}
-        }
+        }    
+
 
     def homeVideoContent(self):
         video_list = []
         t = str(int(time.time() * 1000))
         # t = '1723292093234'
         data = f'key=cb808529bae6b6be45ecfab29a4889bc&t={t}'
+        # 在网站里找 signKey（"cb808529bae6b6be45ecfab29a4889bc"）
         data_md5 = hashlib.md5(data.encode()).hexdigest()
         data_sha1 = hashlib.sha1(data_md5.encode()).hexdigest()
         h = {
@@ -319,14 +321,14 @@ class Spider(Spider):
             'jx': 0
         }
 
-    def categoryContent(self, cid, page, filter, ext):
-        t = cid
-        _type = ext.get('type') if ext.get('type') else ''
-        __class = ext.get('class') if ext.get('class') else ''
-        _area = ext.get('area') if ext.get('area') else ''
-        _year = ext.get('year') if ext.get('year') else ''
-        _lang = ext.get('lang') if ext.get('lang') else ''
-        _by = ext.get('by') if ext.get('by') else ''
+    def categoryContent(self, tid, pg, filter, ext):
+        t = tid
+        _type = ext.get('type') or ''
+        __class = ext.get('class') or ''
+        _area = ext.get('area') or ''
+        _year = ext.get('year') or ''
+        _lang = ext.get('lang') or ''
+        _by = ext.get('by') or ''
         video_list = []
         h = {
             "User-Agent": self.ua,
@@ -334,14 +336,16 @@ class Spider(Spider):
         }
         try:
             res = requests.get(
-                f'{self.home_url}/vod/show/id/{t}{_type}{__class}{_area}{_year}{_lang}{_by}/page/{page}',
+                f'{self.home_url}/vod/show/id/{t}{_type}{__class}{_area}{_year}{_lang}{_by}/page/{pg}',
                 headers=h)
             aa = re.findall(r'\\"list\\":(.*?)}}}]', res.text)
             if not aa:
                 return {'list': [], 'parse': 0, 'jx': 0}
-            bb = aa[0].replace('\\"', '"')
+            print(aa)
+            bb = aa[0].replace('\\"', '"').replace('\\"', '"')
             data_list = json.loads(bb)
             for i in data_list:
+                print(i)
                 video_list.append(
                     {
                         'vod_id': i['vodId'],
@@ -354,18 +358,19 @@ class Spider(Spider):
             return {'list': [], 'msg': e}
         return {'list': video_list, 'parse': 0, 'jx': 0}
 
-    def detailContent(self, did):
-        ids = did[0]
+    def detailContent(self, ids):
+        ids = ids[0]
         video_list = []
         t = str(int(time.time() * 1000))
-        # t = '1723292093234'
         data = f'id={ids}&key=cb808529bae6b6be45ecfab29a4889bc&t={t}'
         data_md5 = hashlib.md5(data.encode()).hexdigest()
         data_sha1 = hashlib.sha1(data_md5.encode()).hexdigest()
         h = {
             "User-Agent": self.ua,
             'referer': self.home_url,
-            't': t, 'sign': data_sha1
+            "deviceid":"13b317f4-c2da-464b-a606-9eaa19f66c4c",
+            't': t, 
+            'sign': data_sha1
         }
         try:
             res = requests.get(f'{self.home_url}/api/mw-movie/anonymous/video/detail?id={ids}', headers=h)
@@ -374,7 +379,7 @@ class Spider(Spider):
             vod_play_url = []
             for i in play_list:
                 name = i['name']
-                url = ids + '/' + str(i['nid'])
+                url = f"{ids}/{i['nid']}"
                 vod_play_url.append(name + '$' + url)
 
             video_list.append(
@@ -398,21 +403,22 @@ class Spider(Spider):
             return {'list': [], 'msg': e}
         return {"list": video_list, 'parse': 0, 'jx': 0}
 
-    def searchContent(self, key, quick, page='1'):
+    def searchContent(self, key, quick, pg='1'):
         wd = key
         video_list = []
         t = str(int(time.time() * 1000))
-        data = f'keyword={wd}&pageNum={page}&pageSize=12&key=cb808529bae6b6be45ecfab29a4889bc&t={t}'
+        data = f'keyword={wd}&pageNum={pg}&pageSize=12&key=cb808529bae6b6be45ecfab29a4889bc&t={t}'
         data_md5 = hashlib.md5(data.encode()).hexdigest()
         data_sha1 = hashlib.sha1(data_md5.encode()).hexdigest()
         h = {
             "User-Agent": self.ua,
             'referer': self.home_url,
+            "deviceid":"13b317f4-c2da-464b-a606-9eaa19f66c4c",
             't': t, 'sign': data_sha1
         }
         try:
             response = requests.get(
-                f'{self.home_url}/api/mw-movie/anonymous/video/searchByWord?keyword={wd}&pageNum={page}&pageSize=12',
+                f'{self.home_url}/api/mw-movie/anonymous/video/searchByWord?keyword={wd}&pageNum={pg}&pageSize=12',
                 headers=h,
             )
             data_list = response.json()['data']['result']['list']
@@ -429,8 +435,8 @@ class Spider(Spider):
             return {'list': [], 'msg': e}
         return {'list': video_list, 'parse': 0, 'jx': 0}
 
-    def playerContent(self, flag, pid, vipFlags):
-        url = pid
+    def playerContent(self, flag, id, vipFlags):
+        url = id
         play_url = self.error_url
         data = url.split('/')
         _id = data[0]
@@ -443,6 +449,7 @@ class Spider(Spider):
         h = {
             "User-Agent": self.ua,
             'referer': self.home_url,
+            "deviceid":"13b317f4-c2da-464b-a606-9eaa19f66c4c",
             't': t, 'sign': data_sha1
         }
         h2 = {

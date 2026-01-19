@@ -115,7 +115,10 @@ class Spider(Spider):
             'vod_content':v.get('content'),
             'vod_play_from': '小苹果',
 			'vod_pic':v.get('pic'),
-            'vod_play_url': '#'.join([f"{i['key']}${i['url']}" for i in v['urls']])
+            'vod_play_url': '#'.join([
+                f"{i['key']}${i['url']}" 
+                for i in v['urls'] 
+                if i.get('key') != '及时雨'])
         }
         return {'list':[vod]}
 
@@ -137,6 +140,7 @@ class Spider(Spider):
 			'timestamp': '1764035202',
 		}
         if 'http' not in id:id=f"http://c.xpgtv.net/m3u8/{id}.m3u8"
+        print(id)
         return {"parse": 0, "url": id, "header": header}
 
     def localProxy(self, param):
