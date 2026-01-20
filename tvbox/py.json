@@ -21,7 +21,10 @@
 	{	"key": "金牌",
 		"name": "🥇️┃金牌┃影视",
 		"type": 3,
-		"api": "./py/金牌.py"
+		"api": "./py/金牌影视.py",
+		"ext": {
+            "site": "https://www.jiabaide.cn,https://www.x8kb9k8.com/,https://cqzuoer.com/,https://ghw9zwp5.com/,https://www.jiabaide.cn"
+        }
 	},
 	{	"key": "永乐视频",
 		"name": "😆┃永乐┃视频",
