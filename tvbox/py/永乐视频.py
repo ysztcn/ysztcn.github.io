@@ -189,7 +189,7 @@ class Spider(Spider):
         return line_id_map.get(line_name, "1")
 
     def _extract_title(self, html):
-        title_match = re.search(r'<meta property="og:title" content="([^"]+)-[^-]+$"', html, re.S | re.I)
+        title_match = re.search(r'<meta property="og:title" content="([^"]+)-[^-]+"', html, re.S | re.I)
         return title_match.group(1).strip() if title_match else ""
 
     def _extract_pic(self, html):
