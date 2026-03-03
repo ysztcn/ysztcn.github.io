@@ -13,11 +13,6 @@
       "quickSearch": 0,
       "changeable": 0
     },
-	{	"key": "苹果",
-        "name": "🍎┃苹果┃影视",
-        "type": 3,
-        "api": "./py/小苹果.py"
-    },
 	{	"key": "金牌",
 		"name": "🥇️┃金牌┃影视",
 		"type": 3,
