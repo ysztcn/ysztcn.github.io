@@ -1,4 +1,3 @@
-https://gitee.com/PizazzXS/another-d/raw/master/movie/py/LSYS.py
-https://gitee.com/PizazzXS/another-d/raw/master/movie/py/HMDJ.py
-http://bili.json
 http://127.0.0.1:9978/file/fatcat/kk.txt
+https://gh-proxy.net/https://raw.githubusercontent.com/fantaiying7/EXT/refs/heads/main/drpy2.min.js
+https://gh-proxy.net/https://raw.githubusercontent.com/fantaiying7/EXT/refs/heads/main/%E5%85%94%E5%B0%8F%E8%B4%9D.js

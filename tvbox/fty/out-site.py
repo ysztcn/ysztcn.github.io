@@ -3,7 +3,7 @@ import json
 
 # 获取当前脚本所在目录
 current_dir = os.path.dirname(os.path.abspath(__file__))
-json_path = os.path.join(current_dir, 'fty.json')
+json_path = os.path.join(current_dir, 'tv.json')
 
 # === 1. 读取 JSON 文件 ===
 try:

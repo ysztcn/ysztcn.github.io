@@ -1,1 +1,1 @@
-clan://localhost/tvbox/fty/fty.json
+clan://localhost/tvbox/tv/tv.json

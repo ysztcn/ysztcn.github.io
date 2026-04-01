@@ -2,6 +2,7 @@
 🗂我的云盘┃我配置
 👽玩偶哥哥┃4K弹幕		http://www.wogg.one
 🚀叨观荐影┃预告片		https://www.6huo.com
+⛅️云播┃无搜索			https://api.wsyzy.net/
 📽️一直播┃直播			
 💡聚剧剧┃三盘			https://freeyx.cloudflare88.eu.org
 🌟立播┃秒播				https://www.libvio.cc
