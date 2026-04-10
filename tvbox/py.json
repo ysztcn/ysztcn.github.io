@@ -2,16 +2,22 @@
   "spider": "./custom_spider.jar",
   "wallpaper": "https://深色壁纸.xxooo.cf/",
   "sites": [	
-	{
-      "key": "豆瓣",
-      "name": "豆瓣推荐",
-      "type": 3,
-      "api": "csp_DouDouGuard",
-	  "jar": "./fty/8b312080f190b1128abf9159f3a41965.jpg",
-      "indexs": 1,
-      "searchable": 0,
-      "quickSearch": 0,
-      "changeable": 0
+	{	"key": "shuju",
+		"name": "🥇️┃学习",
+		"type": 3,		
+		"searchable": 0,
+		"quickSearch": 0,
+		"api": "./py/shuju.py",
+		"ext":""
+	},	
+	{	"key": "豆瓣",
+		  "name": "豆瓣推荐",
+		  "type": 3,
+		  "api": "csp_DouDouGuard",
+		  "indexs": 1,
+		  "searchable": 0,
+		  "quickSearch": 0,
+		  "changeable": 0
     },
 	{	"key": "金牌",
 		"name": "🥇️┃金牌┃影视",
@@ -217,10 +223,16 @@
 			"预告片"
 		]
 	},
-	{	"key": "test",
-        "name": "test",
-        "type": 3,
-        "api": "./py/LIBVIO.py"
+	{
+      "key": "push_agent",
+      "name": "🛴手机┃推送",
+      "type": 3,
+      "api": "csp_PushGuard",
+      "searchable": 0,
+      "quickSearch": 0,
+      "ext": {
+        "Cloud-drive": "tvfan/Cloud-drive.txt"
+      }
     }
  ],
   "logo": "https://s1.imagehub.cc/images/2025/01/15/e8b21391c58ed454c13ade26c003e857.gif",

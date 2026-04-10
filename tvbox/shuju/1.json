@@ -1,0 +1,23 @@
+{
+    "code": 1,
+    "msg": "数据列表",
+    "page": 1,
+    "pagecount": 1,
+    "limit": "20",
+    "total": 20,
+    "list": [
+        {
+            "vod_id": 1001,
+            "vod_name": "高中物理",
+            "vod_pic": "https://i1.hdslb.com/bfs/face/ee9f604b328f538da350b939e41c80b6240ff1ec.png",
+            "vod_actor": "HuangFuRen",
+            "vod_director": "HuangFuRen",
+            "vod_blurb": "的高中物理网络教学视频，取自合集合集·高一高二（上篇）132，合集·高一高二（下篇）178，合集·选修134",
+            "vod_remarks": "443集",
+            "vod_pubdate": "2021-10-23",
+            "vod_year": "2019",
+            "vod_area": "中国大陆",
+            "vod_lang": "汉语普通话"
+        }
+    ]
+}
