@@ -18,6 +18,7 @@ class Spider(Spider):
 
     def init(self, extend=""):
         self.dataUrl = "https://www.yszt.dpdns.org/tvbox/shuju/"
+		#self.dataUrl = "http://10.1.0.10:8000/tvbox/shuju/"
 
     def _fetchJson(self, path):
         url = self.dataUrl + path
@@ -79,7 +80,7 @@ class Spider(Spider):
                 "vod_name": item.get("vod_name"),
                 "vod_pic": item.get("vod_pic", ""),
                 "vod_remarks": item.get("vod_remarks", ""),
-                "vod_play_from": item.get("vod_play_from", ""),
+                "vod_score": item.get("vod_score", ""),
             }
             for item in listData
         ]
@@ -107,6 +108,7 @@ class Spider(Spider):
                     "vod_id": item.get("vod_id"),
                     "vod_name": item.get("vod_name"),
                     "vod_pic": item.get("vod_pic", ""),
+					"vod_des": item.get("vod_des", ""),
                     "vod_actor": item.get("vod_actor", ""),
                     "vod_director": item.get("vod_director", ""),
                     "vod_blurb": item.get("vod_blurb", ""),
