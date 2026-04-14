@@ -1,0 +1,25 @@
+{
+  "code": 1,
+  "msg": "数据列表",
+  "page": 1,
+  "pagecount": 1,
+  "limit": 20,
+  "total": 1,
+  "list": [
+    {
+      "vod_id": 2004,
+      "vod_name": "中医基础",
+      "vod_pic": "https://archive.biliimg.com/bfs/archive/e2d2781ec65e8e19b26415c16c00344a9d0cac98.jpg",
+      "vod_actor": "中冠人闻",
+      "vod_director": "中冠人闻",
+      "vod_des": "",
+      "vod_remarks": "8集",
+      "vod_pubdate": "2025-05-18",
+      "vod_year": "2025",
+      "vod_area": "中国大陆",
+      "vod_lang": "汉语普通话",
+      "vod_play_from": "BiLiBiLi",
+      "vod_play_url": "《五行学说》郝万山 - 木火土金水 - 中医基础知识$https://www.bilibili.com/video/BV1GHfPYHE3X#《奇经八脉》任脉、督脉、冲脉、带脉、阴/阳跷脉、阴/阳维脉 - 中医基础知识$https://www.bilibili.com/video/BV1JK5ez7EfD#《任脉全解》倪海厦 - 穴位、循行与病症关联$https://www.bilibili.com/video/BV1vcJVzZECh#《督脉全解》倪海厦 - 穴位、循行与病症关联$https://www.bilibili.com/video/BV1TdJ3zVENW#《手太阴肺经》倪海厦 - 穴位、循行与病症关联$https://www.bilibili.com/video/BV1YcJpzSEZW#《针灸·防治亚健康》刺法干货 - 零基础快速入门$https://www.bilibili.com/video/BV1uMX3YQEkz#《中医治疗痛风》辩证、专病专药、诊治误区、护理要点$https://www.bilibili.com/video/BV1dV8Mz6EkA#《中医治疗癌症》控症八法、病因病机、辨证论治、经方应用、针灸应用$https://www.bilibili.com/video/BV12M8tz1EeU"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "code": 1,
+  "msg": "数据列表",
+  "page": 1,
+  "pagecount": 1,
+  "limit": 20,
+  "total": 1,
+  "list": [
+    {
+      "vod_id": 2003,
+      "vod_name": "倪海厦《针灸大成》2K高清修复+降噪",
+      "vod_pic": "https://i1.hdslb.com/bfs/archive/c752cd168a9cc0c944b61644fc95a6d5763dbcab.jpg@672w_378h_1c_!web-search-common-cover.avif",
+      "vod_actor": "倪海厦",
+      "vod_director": "三水寒1",
+      "vod_des": "",
+      "vod_remarks": "10集",
+      "vod_pubdate": "2024-06-12",
+      "vod_year": "2024",
+      "vod_area": "中国大陆",
+      "vod_lang": "汉语普通话",
+      "vod_play_from": "BiLiBiLi",
+      "vod_play_url": "倪海厦《针灸大成》 DVD01$https://www.bilibili.com/video/BV18b421H7hr#倪海厦《针灸大成》 DVD02$https://www.bilibili.com/video/BV1fTGoemErm#倪海厦《针灸大成》 DVD03$https://www.bilibili.com/video/BV1QZ421M7eq#倪海厦《针灸大成》 DVD04$https://www.bilibili.com/video/BV1XS421d72w#倪海厦《针灸大成》 DVD05$https://www.bilibili.com/video/BV1VE421A7rE#倪海厦《针灸大成》 DVD07$https://www.bilibili.com/video/BV12f421B7FH#倪海厦《针灸大成》 DVD08$https://www.bilibili.com/video/BV1Bf421q7PJ#倪海厦《针灸大成》 DVD09$https://www.bilibili.com/video/BV1PT421k7qP#倪海厦《针灸大成》 DVD10$https://www.bilibili.com/video/BV12J4m1T73J#倪海厦《针灸大成》 DVD11$https://www.bilibili.com/video/BV1gJ4m1M75m"
+    }
+  ]
+}
