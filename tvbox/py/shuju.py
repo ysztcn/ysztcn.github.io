@@ -2,7 +2,7 @@
 from base.spider import Spider
 
 # B站 Cookie，在此填写
-BILI_COOKIE = "buvid3=28CF2858-57A1-39EF-4904-B9446403809014396infoc; buvid4=8727877A-29D8-B89B-867E-F8B919844F8116137-025121208-d6KEpP6GSI8PoxwPM1r0fScF/7fVbqf5OSncOOIzA8E/HkvSb3iaU75qiXKpxtS9; SESSDATA=07b2ab5c%2C1791180259%2C713c2%2A41CjC5cvdGdVeJ2ZgrOMnVjg3L4Z0rOlkYV6jDJtcfWUgTo6DO7ZAentnJckXmT14rBlgSVk9rb0xrT0tTZWtFcU5Cejd1VnlJM3NycXYzTjJaRjJLUFpXM29Tb19BLU5JUzVQZS1ETC1uTmd4czJUMDhkcjFDRGc1NFF6T1lDaFNKSUpZTzZUeUN3IIEC; bili_jct=2c6fccd901cc1c2178eeb2202a3d77ed; DedeUserID=406729104; DedeUserID__ckMd5=fbc1bebe77240e2c"
+BILI_COOKIE = "buvid3=28CF2858-57A1-39EF-4904-B9446403809014396infoc; buvid4=8727877A-29D8-B89B-867E-F8B919844F8116137-025121208-d6KEpP6GSI8PoxwPM1r0fScF/7fVbqf5OSncOOIzA8E/HkvSb3iaU75qiXKpxtS9; SESSDATA=66fff173%2C1792201186%2C7a3b3%2A41CjDTlCf_aFK4Y9DKanlLazUz9fGbDuznHwuH45X3q0Z_GhScFLoBG3Z_sHwoxtcOcZUSVndmNXFaYXlxX1ZxaE12cFNvU2ViS0ZObEJtNzFmcVpUckIxZllsX19tc1FlMW5hNDd5QmpQYk44c1IzcVY5T2haV2wxV3hvbW92R2ZHVkZLdnpfX1J3IIEC; DedeUserID=406729104; DedeUserID__ckMd5=fbc1bebe77240e2c"
 
 BILI_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -17,8 +17,9 @@ class Spider(Spider):
         return "本地数据"
 
     def init(self, extend=""):
+        self.dataUrl = "http://10.1.0.10:8000/tvbox/shuju/"	
         self.dataUrl = "https://www.yszt.dpdns.org/tvbox/shuju/"
-		#self.dataUrl = "http://10.1.0.10:8000/tvbox/shuju/"
+
 
     def _fetchJson(self, path):
         url = self.dataUrl + path
@@ -108,9 +109,9 @@ class Spider(Spider):
                     "vod_id": item.get("vod_id"),
                     "vod_name": item.get("vod_name"),
                     "vod_pic": item.get("vod_pic", ""),
-					"vod_des": item.get("vod_des", ""),
-                    "vod_actor": item.get("vod_actor", ""),
                     "vod_director": item.get("vod_director", ""),
+                    "vod_actor": item.get("vod_actor", ""),
+                    "vod_content": item.get("vod_des", ""),
                     "vod_blurb": item.get("vod_blurb", ""),
                     "vod_remarks": item.get("vod_remarks", ""),
                     "vod_pubdate": item.get("vod_pubdate", ""),
