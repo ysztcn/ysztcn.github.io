@@ -1,42 +1,44 @@
+# coding=utf-8
+#!/usr/bin/python
 import os
 import json
 
 # 获取当前脚本所在目录
 current_dir = os.path.dirname(os.path.abspath(__file__))
-json_path = os.path.join(current_dir, 'tv.json')
+json_path = os.path.join(current_dir, 'fty.json')
 
-# === 1. 读取 JSON 文件 ===
+# 读取 JSON 文件
 try:
     with open(json_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
 except FileNotFoundError:
-    print(f"❌ 未找到 data.json 文件: {json_path}")
+    print("错误：未找到 fty.json 文件")
     exit(1)
 except json.JSONDecodeError as e:
-    print(f"❌ JSON 格式错误: {e}")
+    print(f"错误：JSON 格式错误 - {e}")
     exit(1)
 
-# === 2. 提取 sites 列表 ===
-sites = data.get('sites') or data.get('site') or []
-if not isinstance(sites, list):
-    sites = []
+# 提取 sites 列表
+sites = data.get('sites') 
 
-# === 3. 只提取 name 字段 ===
-names = []
+# 提取 key 和 name 字段
+key_name_pairs = []
 for site in sites:
-    if isinstance(site, dict) and 'name' in site:
-        names.append(str(site['name']).strip())
+    if isinstance(site, dict):
+        name = site.get('name', '').strip()
+        api = site.get('api', '').strip()
+        key_name_pairs.append(f"{api}-----{name}-----")
 
-# === 4. 打印每个 name（一行一个）===
-print("🔍 提取到的站点名称：")
-for name in names:
-    print(name)
-
-# === 5. 保存为纯文本（推荐用于简单列表）===
+# 保存为纯文本
 output_txt = os.path.join(current_dir, 'site_names.txt')
 with open(output_txt, 'w', encoding='utf-8') as f:
-    f.write('\n'.join(names))
+    f.write('\n'.join(key_name_pairs))
 
-# === 6. 输出提示 ===
-print(f"\n✅ 成功提取 {len(names)} 个站点名称")
-print(f"📄 纯文本已保存至: {os.path.abspath(output_txt)}")
+# 打印每个 key:name 对（一行一个）
+print("提取到的站点信息：")
+for pair in key_name_pairs:
+    print(pair)
+
+# 输出提示
+print(f"\n成功提取 {len(key_name_pairs)} 个站点信息")
+print(f"纯文本已保存至: {os.path.abspath(output_txt)}")
