@@ -1,5 +1,12 @@
-# -*- coding: utf-8 -*-
+# coding=utf-8
+#!/usr/bin/python
+import sys
+from pathlib import Path
+root = Path(__file__).parent.parent.resolve()
+sys.path.insert(0, str(root))  
 from base.spider import Spider
+import json
+import re
 
 # B站 Cookie，在此填写
 BILI_COOKIE = "buvid3=28CF2858-57A1-39EF-4904-B9446403809014396infoc; buvid4=8727877A-29D8-B89B-867E-F8B919844F8116137-025121208-d6KEpP6GSI8PoxwPM1r0fScF/7fVbqf5OSncOOIzA8E/HkvSb3iaU75qiXKpxtS9; SESSDATA=66fff173%2C1792201186%2C7a3b3%2A41CjDTlCf_aFK4Y9DKanlLazUz9fGbDuznHwuH45X3q0Z_GhScFLoBG3Z_sHwoxtcOcZUSVndmNXFaYXlxX1ZxaE12cFNvU2ViS0ZObEJtNzFmcVpUckIxZllsX19tc1FlMW5hNDd5QmpQYk44c1IzcVY5T2haV2wxV3hvbW92R2ZHVkZLdnpfX1J3IIEC; DedeUserID=406729104; DedeUserID__ckMd5=fbc1bebe77240e2c"
@@ -14,12 +21,12 @@ if BILI_COOKIE:
 
 class Spider(Spider):
     def getName(self):
-        return "本地数据"
+        return "本地数据2"
 
     def init(self, extend=""):
+        #self.dataUrl = "https://www.yszt.dpdns.org/tvbox/shuju/"
         self.dataUrl = "http://10.1.0.10:8000/tvbox/shuju/"	
-        self.dataUrl = "https://www.yszt.dpdns.org/tvbox/shuju/"
-
+    
 
     def _fetchJson(self, path):
         url = self.dataUrl + path
@@ -27,27 +34,7 @@ class Spider(Spider):
         if rsp.status_code == 200:
             return rsp.json()
         return None
-
-    def _getBiliUrl(self, url):
-        bvid = url.split("/video/")[-1].split("/")[0].split("?")[0]
-        apiUrl = f"https://api.bilibili.com/x/web-interface/view?bvid={bvid}"
-        rsp = self.fetch(apiUrl, headers=BILI_HEADERS)
-        if rsp.status_code != 200:
-            return ""
-        data = rsp.json()
-        if data.get("code") != 0:
-            return ""
-        aid = data["data"]["aid"]
-        cid = data["data"]["cid"]
-        playUrl = f"https://api.bilibili.com/x/player/playurl?avid={aid}&cid={cid}&qn=80&fnval=0"
-        rsp2 = self.fetch(playUrl, headers=BILI_HEADERS)
-        playData = rsp2.json()
-        if playData.get("code") != 0:
-            return ""
-        durls = playData["data"].get("durl", [])
-        if durls:
-            return durls[0]["url"]
-        return ""
+            
 
     def homeContent(self, filter):
         data = self._fetchJson("class.json")
@@ -128,46 +115,38 @@ class Spider(Spider):
         if not id:
             return {"url": "", "parse": 0}
 
-        url = id.split("$")[-1] if "$" in id else id
-        isBili = url.startswith("https://www.bilibili.com/video/")
-
-        if isBili:
-            realUrl = self._getBiliUrl(url)
-            if realUrl:
-                return {"url": realUrl, "parse": 0, "header": BILI_HEADERS}
+        if id.startswith("BV"):
+            bvid, aid, cid = id.split("+")[:3]
+            apiUrl = f"https://api.bilibili.com/x/player/playurl?avid={aid}&cid={cid}&qn=80&fnval=0"
+            rsp = self.fetch(apiUrl, headers=BILI_HEADERS)
+            if rsp.status_code == 200:
+                playData = rsp.json()
+                if playData.get("code") == 0:
+                    durls = playData["data"].get("durl", [])
+                    if durls:
+                        return {"url": durls[0]["url"], "parse": 0, "header": BILI_HEADERS}
             return {"url": "", "parse": 0}
-
-        if not url.startswith("http"):
-            data = self._fetchJson(f"{id}.json")
-            if not data:
-                return {"url": "", "parse": 0}
-            listData = data.get("list", [])
-            if not listData:
-                return {"url": "", "parse": 0}
-            item = listData[0]
-            playFrom = item.get("vod_play_from", "")
-            playUrl = item.get("vod_play_url", "")
-            fromList = playFrom.split("$$$")
-            urlList = playUrl.split("$$$")
-            targetIndex = 0
-            for i, f in enumerate(fromList):
-                if f == flag:
-                    targetIndex = i
-                    break
-            if targetIndex < len(urlList):
-                urls = urlList[targetIndex].split("#")
-                if urls:
-                    first = urls[0]
-                    url = first.split("$")[1] if "$" in first else first
-                    if url.startswith("https://www.bilibili.com/video/"):
-                        realUrl = self._getBiliUrl(url)
-                        if realUrl:
-                            return {"url": realUrl, "parse": 0, "header": BILI_HEADERS}
-                        return {"url": "", "parse": 0}
-                    return {"url": url, "parse": 0}
+        
+        
+        if id.startswith("https://www.bilibili.com/video/"):
+            bvid = id.split("/video/")[-1].split("/")[0].split("?")[0]
+            apiUrl = f"https://api.bilibili.com/x/web-interface/view?bvid={bvid}"
+            rsp = self.fetch(apiUrl, headers=BILI_HEADERS)
+            if rsp.status_code == 200:
+                playData = rsp.json()
+                aid = playData["data"]["aid"]
+                cid = playData["data"]["cid"]
+                apiUrl = f"https://api.bilibili.com/x/player/playurl?avid={aid}&cid={cid}&qn=80&fnval=0"
+                rsp = self.fetch(apiUrl, headers=BILI_HEADERS)
+                if rsp.status_code == 200:
+                    playData = rsp.json()
+                    if playData.get("code") == 0:
+                        durls = playData["data"].get("durl", [])
+                        if durls:
+                            return {"url": durls[0]["url"], "parse": 0, "header": BILI_HEADERS}
             return {"url": "", "parse": 0}
-
-        return {"url": url, "parse": 0}
-
+            
+        return {"url": "", "parse": 0}
+        
     def searchContent(self, key, quick, pg="1"):
         return {"list": []}
