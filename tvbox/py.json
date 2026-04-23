@@ -1,15 +1,7 @@
 {
   "spider": "./custom_spider.jar",
   "wallpaper": "https://深色壁纸.xxooo.cf/",
-  "sites": [	
-	{	"key": "shuju",
-		"name": "🥇️┃学习",
-		"type": 3,		
-		"searchable": 0,
-		"quickSearch": 0,
-		"api": "./py/shuju.py",
-		"ext":""
-	},	
+  "sites": [		
 	{	"key": "豆瓣",
 		  "name": "豆瓣推荐",
 		  "type": 3,
@@ -26,6 +18,14 @@
 		"ext": {
             "site": "https://www.jiabaide.cn,https://www.x8kb9k8.com/,https://cqzuoer.com/,https://ghw9zwp5.com/,https://www.jiabaide.cn"
         }
+	},
+	{	"key": "shuju",
+		"name": "🥇️┃学习",
+		"type": 3,		
+		"searchable": 0,
+		"quickSearch": 0,
+		"api": "./py/shuju.py",
+		"ext":""
 	},
 	{	"key": "永乐视频",
 		"name": "😆┃永乐┃视频",
