@@ -232,7 +232,7 @@
       "name": "⭐指南┃4K原盘",
       "type": 3,
       "api": "csp_AweSomeGuard",
-      "searchable": 0,
+      "searchable": 1,
       "quickSearch": 0,
       "changeable": 0,
       "filterable": 0,
@@ -252,20 +252,6 @@
       "filterable": 1,
       "ext": {
         "sp": "Panta"
-      },
-      "timeout": 25
-    },
-    {
-      "key": "海绵",
-      "name": "🧽海绵┃4K",
-      "type": 3,
-      "api": "csp_AweSomeGuard",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 1,
-      "filterable": 1,
-      "ext": {
-        "sp": "HaiMian"
       },
       "timeout": 25
     },
@@ -299,6 +285,20 @@
         "sp": "Time123"
       },
       "timeout": 25
+    },
+    {
+      "key": "七味",
+      "name": "🌈七味┃在线",
+      "type": 3,
+      "api": "csp_AweSomeGuard",
+      "searchable": 1,
+      "quickSearch": 1,
+      "changeable": 1,
+      "filterable": 1,
+      "ext": {
+        "sp": "QiWei"
+      },
+      "timeout": 30
     },
     {
       "key": "瓜子",
@@ -354,20 +354,6 @@
       "ext": {
         "sp": "TianTian",
         "site": 0
-      },
-      "timeout": 10
-    },
-    {
-      "key": "雄鹰",
-      "name": "🦅雄鹰┃App",
-      "type": 3,
-      "api": "csp_AweSomeGuard",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 0,
-      "filterable": 1,
-      "ext": {
-        "sp": "XiongYing"
       },
       "timeout": 10
     },
@@ -582,6 +568,24 @@
       "timeout": 30
     },
     {
+      "key": "我的迅雷",
+      "name": "⭐我的┃迅雷",
+      "type": 3,
+      "api": "csp_AweSomeGuard",
+      "searchable": 0,
+      "quickSearch": 0,
+      "changeable": 0,
+      "filterable": 0,
+      "indexs": 0,
+      "style": {
+        "type": "list"
+      },
+      "ext": {
+        "sp": "MyXunLei"
+      },
+      "timeout": 30
+    },
+    {
       "key": "️爱看Bot",
       "name": "⛅️爱看┃直连",
       "type": 3,
@@ -606,8 +610,9 @@
       "filterable": 1,
       "ext": {
         "sp": "Caiji",
-        "api": "http://caiji.dyttzyapi.com/api.php/provide/vod/from/dyttm3u8/at/m3u8/"
+        "api": "http://dyttzy5.tv/api.php/provide/vod/from/dyttm3u8/at/m3u8/"
       },
+      "exclude": "34",
       "timeout": 10
     },
     {
@@ -623,6 +628,7 @@
         "sp": "Caiji",
         "api": "https://cj.lziapi.com/api.php/provide/vod/from/lzm3u8/at/m3u8/"
       },
+      "exclude": "34",
       "timeout": 10
     },
     {
@@ -650,20 +656,6 @@
       "filterable": 1,
       "ext": {
         "sp": "AppXY"
-      },
-      "timeout": 10
-    },
-    {
-      "key": "碎片短剧",
-      "name": "🧸碎片┃短剧",
-      "type": 3,
-      "api": "csp_AweSomeGuard",
-      "searchable": 1,
-      "quickSearch": 1,
-      "changeable": 0,
-      "filterable": 1,
-      "ext": {
-        "sp": "SuiPian"
       },
       "timeout": 10
     },
@@ -843,15 +835,15 @@
       "timeout": 10
     },
     {
-      "key": "六月听书",
-      "name": "🎤六月┃听书",
+      "key": "听悠听书",
+      "name": "🎤听悠┃听书",
       "type": 3,
       "api": "csp_AweSomeGuard",
       "searchable": 1,
       "quickSearch": 0,
       "changeable": 0,
       "ext": {
-        "sp": "WeiTing"
+        "sp": "TingYou"
       },
       "timeout": 10
     },
@@ -1016,6 +1008,24 @@
         "sp": "Bili",
         "json": "https://storage.7x24cc.com/storage-server/presigned/ss1/a6-online-fileupload/newMediaFile/531DD35_773_biligzkt_20251204150243460newMediaFile.bmp"
       }
+    },
+    {
+      "key": "115分享",
+      "name": "🌷115┃分享",
+      "type": 3,
+      "api": "csp_AweSomeGuard",
+      "searchable": 1,
+      "quickSearch": 0,
+      "changeable": 0,
+      "filterable": 0,
+      "indexs": 0,
+      "style": {
+        "type": "list"
+      },
+      "ext": {
+        "sp": "Pan115Share"
+      },
+      "timeout": 30
     },
     {
       "key": "csp_AListGuard",

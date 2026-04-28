@@ -417,7 +417,16 @@
         "type": "rect",
         "ratio": 1.333
       }
-    },{	"key": "shuju",
+    },
+	{	"key": "金牌",
+		"name": "🥇️┃金牌┃影视",
+		"type": 3,
+		"api": "./py/金牌影视.py",
+		"ext": {
+            "site": "https://www.jiabaide.cn,https://www.x8kb9k8.com/,https://cqzuoer.com/,https://ghw9zwp5.com/,https://www.jiabaide.cn"
+        }
+	},
+	{	"key": "shuju",
 		"name": "🥇️┃学习",
 		"type": 3,		
 		"searchable": 0,
@@ -430,11 +439,6 @@
 		"type": 3,
 		"api": "./py/永乐视频.py"
 	},
-	{	"key": "爱看机器人",
-		"name": "😆┃爱看机器人┃视频",
-		"type": 3,
-		"api": "./py/爱看机器人.py"
-	},	
 	{	"key": "Dm84",
 		"name": "动漫┃巴士",
 		"type": 3,

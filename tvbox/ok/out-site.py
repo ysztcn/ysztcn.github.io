@@ -5,14 +5,14 @@ import json
 
 # 获取当前脚本所在目录
 current_dir = os.path.dirname(os.path.abspath(__file__))
-json_path = os.path.join(current_dir, 'wang.json')
+json_path = os.path.join(current_dir, 'ok.json')
 
 # 读取 JSON 文件
 try:
     with open(json_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
 except FileNotFoundError:
-    print("错误：未找到 wang.json 文件")
+    print("错误：未找到 ok.json 文件")
     exit(1)
 except json.JSONDecodeError as e:
     print(f"错误：JSON 格式错误 - {e}")
