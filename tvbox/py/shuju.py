@@ -24,8 +24,8 @@ class Spider(Spider):
         return "本地数据2"
 
     def init(self, extend=""):
-        #self.dataUrl = "https://www.yszt.dpdns.org/tvbox/shuju/"
-        self.dataUrl = "http://10.1.0.10:8000/tvbox/shuju/"	
+        self.dataUrl = "https://www.yszt.dpdns.org/tvbox/shuju/"
+        #self.dataUrl = "http://10.1.0.10:8000/tvbox/shuju/"	
     
 
     def _fetchJson(self, path):
