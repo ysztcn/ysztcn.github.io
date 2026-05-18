@@ -9,7 +9,7 @@ import json
 import re
 
 # B站 Cookie，在此填写
-BILI_COOKIE = "buvid3=28CF2858-57A1-39EF-4904-B9446403809014396infoc; buvid4=8727877A-29D8-B89B-867E-F8B919844F8116137-025121208-d6KEpP6GSI8PoxwPM1r0fScF/7fVbqf5OSncOOIzA8E/HkvSb3iaU75qiXKpxtS9; SESSDATA=f013962f%2C1793673737%2Cf5c26%2A51CjD2yzZiZXfY4uWQBc1sc-H5x0RhyOiHFY5JhmR3egC9dslV1ZILjBEsRYUMk6_s-soSVk9wSElrWEFGRjFzOERmSzJ6WUVxVi1mMGZSSEF4Vnczb014cmhkd2VuYXRGODNnWTdtNUZpNXVIZV9fS29zb0VWMFB4RWhiMXRGUm03R3pnNDNrMWlRIIEC"
+BILI_COOKIE = "buvid3=B044C9DF-E708-B76A-EF8E-F25DFD6916CE51722infoc; buvid4=8727877A-29D8-B89B-867E-F8B919844F8116137-025121208-d6KEpP6GSI8PoxwPM1r0fScF/7fVbqf5OSncOOIzA8E/HkvSb3iaU75qiXKpxtS9; SESSDATA=ad4f94e3%2C1794624005%2C932b1%2A52CjAUx62ygKqfTH-Z0YZas9J7T7yl9z1mGrByl65NRpkFdCIrR9QYlSYw9uRoqV0qW0ASVlY0Y3kweExEcUlOeU9xZFdTdDZmcUhja25SU2dyQXJTUl83ckxFdXVXeFdueEhhUENnWnJpbmJlVURlaGRZTF80bFpaUEJMOWdXdFA2Rm9qYVVJOWdRIIEC"
 
 BILI_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -152,3 +152,21 @@ class Spider(Spider):
         
     def searchContent(self, key, quick, pg="1"):
         return {"list": []}
+# 本地测试
+if __name__ == "__main__":
+    spider = Spider()
+    spider.init()
+    
+    # 测试详情页解析
+    detail_result = spider.detailContent(["1001"])
+    if detail_result['list']:
+        detail = detail_result['list'][0]
+        print(f"视频名称: {detail.get('vod_name', '未知')}")
+    
+    # 测试搜索功能
+    search_result = spider.searchContent("仙逆", False, 1)
+    print(f"搜索结果数量: {len(search_result['list'])}")
+    
+    # 测试播放功能
+    play_result = spider.playerContent("", "BV1Y64y1B7QC+759583821+380829295", {})
+    print(f"播放URL: {play_result.get('url', '')}")
