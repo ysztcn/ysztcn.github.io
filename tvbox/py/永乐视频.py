@@ -47,8 +47,8 @@ class Spider(Spider):
         return result
 
     def categoryContent(self, tid, pg, filter, extend):
-        result = {"list": [], "page": int(pg), "pagecount": 99, "limit": 20, "total": 1980}
-        url = f"{self.host}/vodtype/{tid}/page/{pg}/" if int(pg) > 1 else f"{self.host}/vodtype/{tid}/"
+        result = {"list": [], "page": pg, "pagecount": 99, "limit": 20, "total": 1980}
+        url = f"{self.host}/vodshow/{tid}--------{pg}---/"
         rsp = self.fetch(url)
         if rsp and rsp.status_code == 200:
             result['list'] = self._extract_videos(rsp.text)
