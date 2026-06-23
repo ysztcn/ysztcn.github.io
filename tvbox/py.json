@@ -2,6 +2,12 @@
   "spider": "./custom_spider.jar",
   "wallpaper": "https://深色壁纸.xxooo.cf/",
   "sites": [
+	{	"key": "4kvm",
+		"name": "🥇️┃4kvm",
+		"type": 3,
+		"api": "./py/4kvm.py",
+		"ext":""
+	},
 	{	"key": "金牌",
 		"name": "🥇️┃金牌┃影视",
 		"type": 3,

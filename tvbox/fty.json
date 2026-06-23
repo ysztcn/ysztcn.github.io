@@ -12,6 +12,12 @@
       "quickSearch": 0,
       "changeable": 0
     },
+	{	"key": "4kvm",
+		"name": "🥇️┃4kvm",
+		"type": 3,
+		"api": "./py/4kvm.py",
+		"ext":""
+	},
     {
       "key": "MDrive",
       "name": "🗂我的云盘┃我配置",

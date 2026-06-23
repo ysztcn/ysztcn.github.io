@@ -6,14 +6,12 @@ import sys
 import urllib.parse
 import requests
 from bs4 import BeautifulSoup
-
+import json
 # 禁用SSL证书验证警告
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-from pathlib import Path
-root = Path(__file__).parent.parent.resolve()
-sys.path.insert(0, str(root))  
+
 from base.spider import Spider
 
 class Spider(Spider):
