@@ -3,7 +3,7 @@
   "wallpaper": "https://深色壁纸.xxooo.cf/",
   "sites": [	
 	{	"key": "4kvm",
-		"name": "🥇️┃4kvm┃影视",
+		"name": "🖥️┃4kvm┃影视",
 		"type": 3,
 		"api": "./py/4kvm.py",
 		"ext":""
@@ -13,7 +13,7 @@
 		"type": 3,
 		"api": "./py/金牌影视.py",
 		"ext": {
-            "site": "https://www.jpyy.com,https://www.jpyy2.com"
+            "site": "https://www.jpyy2.com"
         }
 	},	
 	{	"key": "爱电影",
@@ -25,13 +25,13 @@
         }
 	},
 	{	"key": "小苹果",
-		"name": "🥇️┃小苹果┃影视",
+		"name": "🍎┃小苹果┃影视",
 		"type": 3,
 		"api": "./py/小苹果.py",
 		"ext":""
 	},
 	{	"key": "shuju",
-		"name": "🥇️┃学习",
+		"name": "📚️┃学习",
 		"type": 3,		
 		"searchable": 0,
 		"quickSearch": 0,
@@ -54,9 +54,14 @@
 		"api": "./py/影视工厂.py"
 	},
 	{	"key": "河马短剧",
-        "name": "🦛┃河马短剧",
+        "name": "🦛┃河马┃短剧",
         "type": 3,
-        "api": "./py/河马┃短剧.py"
+        "api": "./py/河马短剧.py"
+    },
+	{	"key": "甜圈短剧",
+        "name": "🍩┃甜圈┃短剧",
+        "type": 3,
+        "api": "./py/甜圈短剧.py"
     },
     {
       "key": "push_agent",
