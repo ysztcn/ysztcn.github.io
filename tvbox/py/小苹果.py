@@ -127,20 +127,18 @@ class Spider(Spider):
         return {'list':self.getlist(rsp['data']),'page':pg}
 
     def playerContent(self, flag, id, vipFlags):
-        timestamp = int(time.time())
-        header = {			
-			'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
-			'user_id': 'XPGBOX',
+        header = {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36',
+            'user_id': 'XPGBOX',
             'token2': 'bVo+izKHvi10cTd0AX6GFaRIMJDhlT4urKBGpAbXZ+V+GUgMjgt8pItui98=',
             'version': 'XPGBOX com.phoenix.tv1.6.1',
             'hash': 'adc3',
-            'screenx': '1280',            
+            'screenx': '1280',
             'token': 'RXQbgXbWrw0FFzkNHHbYH5lsNPGgxh5wrq1rkE7PfNN1Dlkw0xZhjdt535ZdVFDtUWJjVqKZL9YFOYYiSE1XIK97VS16mT/udQkNSs08RHp0iEk6TnRWtQjoxmC9cgx/x6h6RH8mXey8uwI=',
-			'screeny': '720',
-			'timestamp': '1764035202',
-		}
-        if 'http' not in id:id=f"http://c.xpgtv.net/m3u8/{id}.m3u8"
-        print(id)
+            'screeny': '720',
+        }
+        if 'http' not in id:
+            id = f"{self.host}/hls/{id}.m3u8"
         return {"parse": 0, "url": id, "header": header}
 
     def localProxy(self, param):

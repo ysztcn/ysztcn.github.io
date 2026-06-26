@@ -1,9 +1,9 @@
 {
   "spider": "./custom_spider.jar",
   "wallpaper": "https://深色壁纸.xxooo.cf/",
-  "sites": [
+  "sites": [	
 	{	"key": "4kvm",
-		"name": "🥇️┃4kvm",
+		"name": "🥇️┃4kvm┃影视",
 		"type": 3,
 		"api": "./py/4kvm.py",
 		"ext":""
@@ -13,8 +13,22 @@
 		"type": 3,
 		"api": "./py/金牌影视.py",
 		"ext": {
-            "site": "https://www.jiabaide.cn,https://www.x8kb9k8.com/,https://cqzuoer.com/,https://ghw9zwp5.com/,https://www.jiabaide.cn"
+            "site": "https://www.jpyy.com,https://www.jpyy2.com"
         }
+	},	
+	{	"key": "爱电影",
+		"name": "🥇️┃爱电影┃影视",
+		"type": 3,
+		"api": "./py/金牌影视.py",
+		"ext": {
+            "site": "https://www.ivdy.com"
+        }
+	},
+	{	"key": "小苹果",
+		"name": "🥇️┃小苹果┃影视",
+		"type": 3,
+		"api": "./py/小苹果.py",
+		"ext":""
 	},
 	{	"key": "shuju",
 		"name": "🥇️┃学习",
@@ -25,24 +39,33 @@
 		"ext":""
 	},
 	{	"key": "永乐视频",
-		"name": "😆┃永乐┃视频",
+		"name": "🎬┃永乐┃视频",
 		"type": 3,
 		"api": "./py/永乐视频.py"
 	},
 	{	"key": "Dm84",
-		"name": "动漫┃巴士",
+		"name": "🚌┃巴士┃动漫",
 		"type": 3,
 		"api": "./py/动漫巴士.py"
 	},
 	{	"key": "影视工厂",
-		"name": "影视工厂",
+		"name": "🏭┃影视工厂┃影视",
 		"type": 3,
 		"api": "./py/影视工厂.py"
 	},
-	{	"key": "🦛河马短剧",
-        "name": "河马短剧",
+	{	"key": "河马短剧",
+        "name": "🦛┃河马短剧",
         "type": 3,
-        "api": "./py/河马短剧.py"
+        "api": "./py/河马┃短剧.py"
+    },
+    {
+      "key": "push_agent",
+      "name": "Push",
+      "type": 3,
+      "api": "csp_Push",
+      "searchable": 0,
+      "changeable": 0,
+      "timeout": 60
     }
 	],
   "logo": "https://s1.imagehub.cc/images/2025/01/15/e8b21391c58ed454c13ade26c003e857.gif",
