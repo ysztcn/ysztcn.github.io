@@ -1,5 +1,6 @@
 import json
 import re
+import sys
 from urllib.parse import quote
 
 import requests
@@ -16,6 +17,17 @@ class Spider(Spider):
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0",
     "Referer": "https://www.4kvm.top/",
   }
+
+  _session = None
+
+  def _get_session(self):
+    if self._session is None:
+      self._session = requests.Session()
+      self._session.headers.update(self._headers)
+    return self._session
+
+  def _log(self, msg: str):
+    print(f"[4kvm-debug] {msg}", flush=True)
 
   _workerUrl = "https://4kvm-play.yszt.dpdns.org/api/play"
 
@@ -121,11 +133,19 @@ class Spider(Spider):
       except json.JSONDecodeError:
         pass
 
-  def _get(self, url: str) -> requests.Response:
-    return requests.get(url, headers=self._headers, timeout=15)
+  def _get(self, url: str, params: dict = None) -> requests.Response:
+    ses = self._get_session()
+    return ses.get(url, params=params, timeout=15)
 
   def _parse_list(self, html: str) -> list:
-    doc = pq(html)
+    try:
+      doc = pq(html.encode('utf-8'))
+    except Exception as e:
+      self._log(f"parse failed: {e}, html(len={len(html)}) repr={repr(html[:200])}")
+      try:
+        doc = pq(html)
+      except Exception:
+        return []
     result = []
     for card in doc(".movie-card").items():
       vodId = card.attr("data-vod-id")
@@ -225,19 +245,25 @@ class Spider(Spider):
   def categoryContent(self, tid: str, pg: str, filter: bool, extend: dict) -> str:
     if tid not in self.categories:
       return {"list": [], "pagecount": 0}
-    params = [f"classify={tid}"]
+    query = {"classify": tid}
     for key in ("areas", "types", "years", "tags"):
       val = extend.get(key, "")
       if val:
-        params.append(f"{key}={val}")
+        query[key] = val
     sortVal = extend.get("sort", "")
     if sortVal and sortVal in self._sortMap:
-      params.append(self._sortMap[sortVal])
+      for part in self._sortMap[sortVal].split("&"):
+        k, v = part.split("=", 1)
+        query[k] = v
     if pg and pg != "1":
-      params.append(f"page={pg}")
-    url = f"{self.baseUrl}/filter?{'&'.join(params)}"
-    html = self._get(url).text
+      query["page"] = pg
+    resp = self._get(f"{self.baseUrl}/filter", params=query)
+    self._log(f"url={resp.url} status={resp.status_code} len={len(resp.text)} query={query}")
+    if not resp.text or not resp.text.strip():
+      self._log(f"empty body! headers={dict(resp.headers)}")
+    html = resp.text
     result = self._parse_list(html)
+    self._log(f"parsed {len(result)} items for pg={pg}")
     return {"list": result, "pagecount": 999}
 
   def detailContent(self, ids: list) -> str:
@@ -246,7 +272,10 @@ class Spider(Spider):
     vodId = ids[0]
     url = f"{self.baseUrl}/play/{vodId}"
     html = self._get(url).text
-    doc = pq(html)
+    try:
+      doc = pq(html)
+    except Exception:
+      return {"list": []}
 
     title = ""
     h1 = doc("h1").eq(0)
