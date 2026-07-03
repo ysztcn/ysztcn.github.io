@@ -355,29 +355,35 @@ class Spider(Spider):
     return {"list": [vod]}
 
   def searchContent(self, key: str, quick: bool, pg: str = "1") -> str:
-    api_url = f"{self.baseUrl}/api/search?q={quote(key)}&page={pg}"
-    try:
-      resp = self._get(api_url)
-      data = resp.json()
-      if data.get("code") == 200:
-        result = []
-        total = data.get("data", {}).get("total", 0)
-        for item in data.get("data", {}).get("list", []):
-          result.append({
-            "vod_id": str(item.get("id", "")),
-            "vod_name": item.get("title", ""),
-            "vod_pic": item.get("cover", ""),
-            "vod_remarks": f"更新至{item.get('updated_episodes', '?')}集" if item.get("vod_total", 0) > 1 else "",
-            "vod_year": str(item.get("year", "")),
-            "vod_score": str(item.get("rating", "")),
-          })
-        pagecount = max(1, (total + 19) // 20)
-        return {"list": result, "pagecount": pagecount}
-    except Exception:
-      pass
     html = self._get(f"{self.baseUrl}/search?q={quote(key)}").text
-    result = self._parse_list(html)
-    return {"list": result, "pagecount": 1}
+    result = self._parse_search(html)
+    return {"list": result, "pagecount": 999}
+
+  def _parse_search(self, html: str) -> list:
+    result = []
+    try:
+      doc = pq(html.encode('utf-8'))
+    except Exception:
+      return result
+    for card in doc("div.group.relative").items():
+      link = card("a[href^='/play/']")
+      href = link.attr("href")
+      if not href:
+        continue
+      vodId = href.split("/play/")[-1].split("?")[0]
+      if not vodId:
+        continue
+      title = card("h3").eq(0).text().strip()
+      img = card("img.lazy")
+      pic = img.attr("data-src") or img.attr("src") or ""
+      year = card("div.absolute.top-2.left-2").text().strip()
+      result.append({
+        "vod_id": vodId,
+        "vod_name": title,
+        "vod_pic": pic,
+        "vod_year": year,
+      })
+    return result
 
   def playerContent(self, flag: str, id: str, vipFlags: list) -> str:
     if not id:

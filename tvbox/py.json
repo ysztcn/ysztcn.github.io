@@ -21,7 +21,7 @@
 		"type": 3,
 		"api": "./py/金牌影视.py",
 		"ext": {
-            "site": "https://www.jpyy2.com"
+            "site": "https://www.jpyy2.com,https://www.sunnafh.com"
         }
 	},	
 	{	"key": "爱电影",
