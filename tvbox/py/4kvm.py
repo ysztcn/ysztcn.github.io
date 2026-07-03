@@ -403,11 +403,10 @@ class Spider(Spider):
         resp = requests.get(self._workerUrl, params=params, timeout=15)
         body = resp.json()
         if body.get("code") == 200 and body.get("data", {}).get("quality_urls"):
-          self._headers["Referer"] = f"{self.baseUrl}/"
           unlocked = [q for q in body["data"]["quality_urls"] if not q.get("locked")]
           valid = unlocked if unlocked else body["data"]["quality_urls"]
           best = max(valid, key=lambda q: q.get("bitrate", 0))
-          return {"parse": 0, "url": best["url"], "header": self._headers}
+          return {"parse": 0, "url": best["url"]}
       except Exception:
         pass
       return {"parse": 1, "url": f"{self.baseUrl}{path}", "header": self._headers}
