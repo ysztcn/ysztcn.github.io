@@ -44,8 +44,7 @@ class Spider(Spider):
 
   def init(self, extend=""):
     self._session = requests.Session()
-    import threading
-    threading.Thread(target=self.fetch, args=(self.host,), daemon=True).start()
+    self._homeHtml = None
 
   def fetch(self, url, timeout=30):
     try:
@@ -54,6 +53,13 @@ class Spider(Spider):
       return response
     except:
       return None
+
+  def _fetchHome(self):
+    if self._homeHtml is None:
+      rsp = self.fetch(self.host)
+      if rsp and rsp.status_code == 200:
+        self._homeHtml = rsp.text
+    return self._homeHtml
 
   def homeContent(self, filter):
     result = {
@@ -64,15 +70,15 @@ class Spider(Spider):
       "filters": self._get_filters(),
       "list": [],
     }
-    rsp = self.fetch(self.host)
-    if rsp and rsp.status_code == 200:
-      result['list'] = self._extract_videos(rsp.text, 20)
+    html = self._fetchHome()
+    if html:
+      result['list'] = self._extract_videos(html, 20)
     return result
 
   def homeVideoContent(self):
-    rsp = self.fetch(self.host)
-    if rsp and rsp.status_code == 200:
-      return {"list": self._extract_videos(rsp.text, 40)}
+    html = self._fetchHome()
+    if html:
+      return {"list": self._extract_videos(html, 40)}
     return {"list": []}
 
   def categoryContent(self, tid, pg, filter, extend):
