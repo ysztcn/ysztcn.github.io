@@ -3,18 +3,19 @@
 
 import json
 import time
+import urllib.error
 import urllib.parse
-
-import requests
+import urllib.request
 
 from base.spider import Spider
 
 
 class Spider(Spider):
-  _apiHost = "https://m.xgshort.com"
-  _workerUrl = "https://xgshort-api.yszt.dpdns.org"
+  _apiHost = "https://www.xgshort.com"
   _headers = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+    'Referer': 'https://www.xgshort.com/',
+    'Accept': 'application/json, text/plain, */*',
   }
   _filterKeyMap = {
     "排序": "sort", "题材": "theme", "地区": "area",
@@ -31,43 +32,37 @@ class Spider(Spider):
     if extend:
       try:
         cfg = json.loads(extend)
-        if "workerUrl" in cfg:
-          self._workerUrl = cfg["workerUrl"]
         if "apiHost" in cfg:
           self._apiHost = cfg["apiHost"]
       except json.JSONDecodeError:
         pass
 
   def _fetchApi(self, path, method="GET", body=None, needAuth=False):
-    # 每个接口约耗1~2次网络请求，token 失效时重试一次
     for attempt in range(2):
-      url = f"{self._workerUrl}/api/proxy?url={urllib.parse.quote(self._apiHost + path)}"
+      headers = dict(self._headers)
+      payload = None
+      if method == "POST":
+        headers["Content-Type"] = "application/json"
+        payload = body.encode("utf-8") if isinstance(body, str) else body
       if needAuth:
-        url += f"&authtoken={self._getToken()}"
+        headers["Authorization"] = "Bearer " + self._getToken()
+      request = urllib.request.Request(self._apiHost + path, data=payload, headers=headers, method=method)
       try:
-        if method == "POST":
-          resp = requests.post(url, data=body, headers=self._headers, timeout=20)
-        else:
-          resp = requests.get(url, headers=self._headers, timeout=20)
-        resp.encoding = "utf-8"
-        outer = resp.json()
+        with urllib.request.urlopen(request, timeout=20) as resp:
+          text = resp.read().decode("utf-8", "replace")
+      except urllib.error.HTTPError as e:
+        if needAuth and attempt == 0 and e.code in (401, 403):
+          self._token = ""
+          self._tokenExp = 0
+          continue
+        return None
       except Exception:
         return None
-      data = outer.get("data") if isinstance(outer, dict) else None
-      if isinstance(data, str):
-        try:
-          data = json.loads(data)
-        except json.JSONDecodeError:
-          pass
-      if needAuth and attempt == 0 and self._isUnauthorized(data):
-        self._token = ""
-        self._tokenExp = 0
-        continue
-      return data
+      try:
+        return json.loads(text)
+      except json.JSONDecodeError:
+        return text
     return None
-
-  def _isUnauthorized(self, data):
-    return isinstance(data, dict) and data.get("statusCode") in (401, 403)
 
   def _getToken(self):
     if self._token and self._tokenExp > time.time() + 600:
@@ -125,6 +120,10 @@ class Spider(Spider):
     data = self._fetchApi(f"/api/list/fuzzysearch?keyword={encoded}&page={pg}&size=20&categoryId=1")
     for v in self._extractList(data):
       result["list"].append(self._buildVodCard(v))
+    total = self._extractTotal(data)
+    if total:
+      result["total"] = total
+      result["pagecount"] = (total + 19) // 20
     return result
 
   def detailContent(self, ids):
