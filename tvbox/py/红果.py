@@ -4173,8 +4173,18 @@ class Spider(_BaseSpider):
         # 2) 频道页三传输
         d2, diag2 = self._fetch_router("%s/category/real-drama" % self.host, prefer_bot=True)
         rows2 = (self._find_key(d2, "recommendList") or []) if d2 else []
+        sample_sid = ""
         if rows2 and isinstance(rows2[0], dict):
-            sample_vid = str(rows2[0].get("series_id") or "")
+            sample_sid = str(rows2[0].get("series_id") or "")
+        # 探测必须用真实 vid (分集号): 拿 series_id 调播放接口只会得到 101000 参数异常
+        if sample_sid:
+            try:
+                detail2 = self._fetch_json("%s/detail?series_id=%s" % (self.host, sample_sid))
+                sd2 = self._find_key(detail2, "seriesDetail") or {}
+                vidl2 = sd2.get("vid_list") or []
+                sample_vid = str(vidl2[0]) if vidl2 else ""
+            except Exception:
+                sample_vid = ""
         cards.append(("2 频道页三传输", "%s => 数据条数=%d" % (" | ".join(diag2), len(rows2))))
         # 3) 榜单页 (旧兜底路径, 爬虫UA)
         try:
@@ -4218,12 +4228,38 @@ class Spider(_BaseSpider):
             out.append({"vod_id": "diag%d" % i, "vod_name": name,
                         "vod_pic": "", "vod_remarks": str(info)[:80],
                         "vod_content": str(info), "vod_tag": ""})
-        return {"list": out, "page": 1, "pagecount": 1, "limit": 6, "total": len(out)}
+        return {"list": out, "page": 1, "pagecount": 6, "limit": 6, "total": len(out)}
+
+    def _diag_detail(self, diag_id: str):
+        """诊断卡点击详情: 重跑探测并展开全部卡片, 避免 detailContent 返回空报'没有找到数据'。"""
+        cards = self._diag_content().get("list", [])
+        pick = None
+        for card in cards:
+            if card.get("vod_id") == diag_id:
+                pick = card
+                break
+        if pick is None:
+            pick = {"vod_id": diag_id, "vod_name": "诊断", "vod_content": ""}
+        summary = "\n".join(
+            "%s: %s" % (c.get("vod_name"), c.get("vod_content")) for c in cards
+        )
+        return {"list": [{
+            "vod_id": pick.get("vod_id", diag_id),
+            "vod_name": pick.get("vod_name", "诊断"),
+            "vod_pic": "",
+            "vod_remarks": pick.get("vod_remarks", ""),
+            "vod_content": "%s\n\n全部探测:\n%s" % (pick.get("vod_content", ""), summary),
+            "vod_tag": "",
+        }]}
+
     def detailContent(self, ids):
         result = {"list": []}
         try:
             ids_list = ids if isinstance(ids, list) else [ids]
-            series_id = str(ids_list[0] if ids_list else "").replace("hg-series-v1:", "")
+            first_id = str(ids_list[0] if ids_list else "")
+            if first_id.startswith("diag"):
+                return self._diag_detail(first_id)
+            series_id = first_id.replace("hg-series-v1:", "")
             if not series_id:
                 return result
             data = self._fetch_json("%s/detail?series_id=%s" % (self.host, series_id))
