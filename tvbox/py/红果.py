@@ -3658,6 +3658,25 @@ def _local_proxy(self, param):
         return [500, "text/plain; charset=utf-8", msg.encode("utf-8")]
 
 
+def _proxy_serves_video(url: str) -> bool:
+    """探测壳代理通道是否真返回视频数据。
+    部分壳(如官方 9978 的 do=py)会对任何请求回 200, 但只给一万多字节文本,
+    播放器拿到非视频内容会立刻换源; 这种情况必须回退自托管流。"""
+    try:
+        req = urllib.request.Request(url, headers={"Range": "bytes=0-3"})
+        resp = urllib.request.urlopen(req, timeout=10, context=_G_CTX)
+        ctype = (resp.headers.get("Content-Type") or "").lower()
+        clen = resp.headers.get("Content-Length")
+        resp.read(64)
+        if ctype.startswith("video"):
+            return True
+        if clen and clen.isdigit() and int(clen) > 1024 * 1024:
+            return True
+        return False
+    except Exception:
+        return False
+
+
 class Spider(_BaseSpider):
     def __init__(self):
         self.name = "红果短剧"
@@ -4223,12 +4242,80 @@ class Spider(_BaseSpider):
             cards.append(("6 本地流服务", "port=%s" % p if p else "启动失败(CENC线路不可用, 公开直链不受影响)"))
         except Exception as e:
             cards.append(("6 本地流服务", "异常=%s" % e))
+        # 7) 本机高清流 (真正从 127.0.0.1 拉一段高清流, 覆盖 360 直链以外的播放路径)
+        local_info = "端口未起(card6)"
+        try:
+            port7 = _start_stream_server()
+            if port7:
+                _did7, _iid7 = _fresh_devices()
+                local_url = "http://127.0.0.1:%d/hg.mp4?vid=%s&q=720&did=%s&iid=%s" % (
+                    port7, probe_vid, _did7, _iid7)
+                t7 = time.time()
+                try:
+                    req7 = urllib.request.Request(local_url, headers={"Range": "bytes=0-262143"})
+                    rr7 = urllib.request.urlopen(req7, timeout=60, context=self._ctx)
+                    body7 = rr7.read()
+                    local_info = "http=%s bytes=%d 用时=%.1fs" % (
+                        rr7.status, len(body7), time.time() - t7)
+                except urllib.error.HTTPError as e7:
+                    local_info = "http=%s %s" % (e7.code, e7.read()[:60])
+                except Exception as e7:
+                    local_info = "请求异常=%s (端口在, 但本机连不上/读不出)" % type(e7).__name__
+        except Exception as e7:
+            local_info = "异常=%s" % e7
+        cards.append(("7 本机高清流720", str(local_info)[:120]))
+        # 8) 播放出口 (playerContent 对 720 线路真实返回什么地址, 判定走代理还是自托管)
+        try:
+            has_proxy = hasattr(self, "getProxyUrl")
+            proxy_val = ""
+            if has_proxy:
+                try:
+                    proxy_val = str(self.getProxyUrl() or "")
+                except Exception:
+                    proxy_val = "<调用异常>"
+            p720 = self.playerContent(
+                "红果720", "%s720:%s" % (EPISODE_PREFIX, probe_vid), None)
+            url720 = str(p720.get("url") or "")
+            cards.append(("8 播放出口", "hasProxy=%s proxy=%s url=%s" % (
+                "Y" if has_proxy else "N", proxy_val[:36] or "(空)",
+                url720[:64] or "(空)")))
+        except Exception as e:
+            cards.append(("8 播放出口", "异常=%s" % e))
+        # 9) 壳代理出口 (getProxyUrl 的 do=py 通道, 高清线路实际走的通道)
+        proxy_info = "无 getProxyUrl"
+        try:
+            if hasattr(self, "getProxyUrl"):
+                purl = ""
+                try:
+                    purl = str(self.getProxyUrl() or "").strip()
+                except Exception as e9:
+                    proxy_info = "getProxyUrl 调用异常=%s" % type(e9).__name__
+                if purl:
+                    d9, i9 = _fresh_devices()
+                    sep9 = "&" if "?" in purl else "?"
+                    pfull = purl + sep9 + urlencode(
+                        {"vid": probe_vid, "q": "720", "hg": "cenc",
+                         "did": d9, "iid": i9})
+                    t9 = time.time()
+                    try:
+                        req9 = urllib.request.Request(pfull, headers={"Range": "bytes=0-3"})
+                        rr9 = urllib.request.urlopen(req9, timeout=60, context=self._ctx)
+                        b9 = rr9.read()
+                        proxy_info = "http=%s bytes=%d 用时=%.1fs" % (
+                            rr9.status, len(b9), time.time() - t9)
+                    except urllib.error.HTTPError as e9:
+                        proxy_info = "http=%s %s" % (e9.code, e9.read()[:60])
+                    except Exception as e9:
+                        proxy_info = "请求异常=%s (代理通道不可用)" % type(e9).__name__
+        except Exception as e9:
+            proxy_info = "异常=%s" % e9
+        cards.append(("9 壳代理出口", str(proxy_info)[:120]))
         out = []
         for i, (name, info) in enumerate(cards):
             out.append({"vod_id": "diag%d" % i, "vod_name": name,
                         "vod_pic": "", "vod_remarks": str(info)[:80],
                         "vod_content": str(info), "vod_tag": ""})
-        return {"list": out, "page": 1, "pagecount": 6, "limit": 6, "total": len(out)}
+        return {"list": out, "page": 1, "pagecount": 9, "limit": 9, "total": len(out)}
 
     def _diag_detail(self, diag_id: str):
         """诊断卡点击详情: 重跑探测并展开全部卡片, 避免 detailContent 返回空报'没有找到数据'。"""
@@ -4486,9 +4573,12 @@ class Spider(_BaseSpider):
             did, iid = _fresh_devices()
             if proxy:
                 sep = "&" if "?" in proxy else "?"
-                result["url"] = proxy + sep + urlencode(
+                proxy_url = proxy + sep + urlencode(
                     {"vid": vid, "q": q, "hg": "cenc", "did": did, "iid": iid})
-                return result
+                # 壳代理未必真的喂视频(官方的 9978 do=py 就回 200 文本); 校验通过才用, 否则回退自托管
+                if _proxy_serves_video(proxy_url):
+                    result["url"] = proxy_url
+                    return result
             # 3) 自托管 CENC 流 (进程内 ThreadingHTTPServer, 任意壳可用)
             port = _start_stream_server()
             if not port:
