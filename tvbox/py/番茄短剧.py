@@ -3158,7 +3158,7 @@ def _ror64(value: int, count: int) -> int:
 
 def _encrypt_helios(khronos: int, rand_value: int = 0) -> str:
     value = rand_value or random.randint(0, 0xFFFFFFFF)
-    seed = value.to_bytes(4, "little") + b"8662"
+    seed = value.to_bytes(4, "little") + FQ_AID.encode()
     digest = hashlib.md5(seed).digest()
     keys = b"".join(f"{item:02x}".encode() for item in digest)
     table = [int.from_bytes(keys[:8], "little")]
@@ -3174,7 +3174,7 @@ def _encrypt_helios(khronos: int, rand_value: int = 0) -> str:
         value2 &= 0xFFFFFFFFFFFFFFFF
         table.append(value2)
         first, second = value2, words.pop(0)
-    raw = (f"{khronos}-1588093228-8662").encode()
+    raw = (f"{khronos}-1588093228-{FQ_AID}").encode()
     pad = 16 - len(raw) % 16
     raw += bytes([pad]) * pad
     output = bytearray()
@@ -3207,7 +3207,7 @@ def _gen_medusa_proto(url: str, url_params: Mapping[str, Any], devices: Mapping[
     report_ts = 1728388016635
     report_time = int(time.time())
     device = {
-        "d1": 1, "collect_stat": 2, "aid": "8662", "device_id": device_id,
+        "d1": 1, "collect_stat": 2, "aid": FQ_AID, "device_id": device_id,
         "sec_device_token": device_sec_device_token,
         "app_version": "!noperm!", "battery": -888888, "battery2": -888888,
         "battery_health": 3, "battery_changed": -888888, "network": "!notset!",
@@ -3231,7 +3231,7 @@ def _gen_medusa_proto(url: str, url_params: Mapping[str, Any], devices: Mapping[
     }
     values = {
         "magic": b"\xf7\xe8_\xfa\xd7\xd7\xdc;\xd6*\xc8pW\xcfa\x18",
-        "version": 3, "rand": proto_rand, "ms_app_id": "8662",
+        "version": 3, "rand": proto_rand, "ms_app_id": FQ_AID,
         "device_id": device_id, "license_id": "1588093228", "app_version": version_name,
         "sdk_version_str": "v04.06.04-ml-android", "sdk_version": 67503104,
         "xg_seed_bytes": (320).to_bytes(8, "little"), "time": khronos,
@@ -3873,6 +3873,21 @@ class Spider(_BaseSpider):
             "https://%s%s" % (FQ_HOST, path), q, devices, body, headers)
         return _json_response(_gpost(signed_url, data=data, headers=signed_headers, timeout=30))
 
+    def _landpage_post(self, body, probe):
+        """landpage 上游对同一请求偶发回空内容或读超时 (同标签内容 18/0 条交替)。
+        回空/超时即视为 service 抖动, 换新设备重新签名再试, 最多两次; probe(data) 为真即提前返回。"""
+        data = None
+        for attempt in range(3):
+            try:
+                data = self._fq_post("/reading/distribution/category/landpage/v", body)
+            except Exception:
+                if attempt == 2:
+                    raise
+                continue
+            if probe(data):
+                break
+        return data
+
     # ==================== 分类 ====================
 
     # selector_rows 的 5 个内容维度, 作为二级筛选组; sort 是排序, 不作为筛选。
@@ -3896,7 +3911,9 @@ class Spider(_BaseSpider):
                                  "category_dim_theme": []},
                 "session_id": "",
             }
-            data = self._fq_post("/reading/distribution/category/landpage/v", body)
+            data = self._landpage_post(
+                body, lambda d: bool(((d.get("data") or {}).get("selector_rows")))
+            )
             rows = (data.get("data") or {}).get("selector_rows") or []
             dim_tags, dim_name = {}, {}
             for row in rows:
@@ -3968,7 +3985,9 @@ class Spider(_BaseSpider):
                                  "sort": ["hot_score"]},
                 "session_id": "", "req_type": "only_content", "client_req_type": 3,
             }
-            dd = self._fq_post("/reading/distribution/category/landpage/v", body).get("data") or {}
+            dd = self._landpage_post(
+                body, lambda d: bool(((d.get("data") or {}).get("video_data")))
+            ).get("data") or {}
             for it in (dd.get("video_data") or []):
                 vod = self._parse_video(it)
                 vid = vod.get("vod_id")
@@ -4019,7 +4038,9 @@ class Spider(_BaseSpider):
         }
         result = {"list": [], "page": page, "pagecount": page, "limit": 18, "total": 0}
         try:
-            data = self._fq_post("/reading/distribution/category/landpage/v", body)
+            data = self._landpage_post(
+                body, lambda d: bool(((d.get("data") or {}).get("video_data")))
+            )
             dd = data.get("data") or {}
             result["list"] = [self._parse_video(it) for it in (dd.get("video_data") or [])]
             if dd.get("has_more"):

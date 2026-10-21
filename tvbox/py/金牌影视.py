@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
 # by @嗷呜
 import json
-import sys
 import threading
 import uuid
 import requests
 import time
 from Crypto.Hash import MD5, SHA1
-from pathlib import Path
-root = Path(__file__).parent.parent.resolve()
-sys.path.insert(0, str(root))  
 from base.spider import Spider
 class Spider(Spider):
     '''
@@ -29,7 +25,7 @@ class Spider(Spider):
     },
     '''
     def init(self, extend=""):
-        hosts = ""
+        hosts = "https://www.jiabaide.cn"
         if extend:
             hosts=json.loads(extend)['site']
         self.host = self.host_late(hosts)
@@ -152,11 +148,13 @@ class Spider(Spider):
             'Origin': self.host,
             'Referer': f'{self.host}/'
         }
-        ids=id.split('@@')
-        pdata = self.fetch(f"{self.host}/api/mw-movie/anonymous/v2/video/episode/url?clientType=1&id={ids[0]}&nid={ids[1]}",headers=self.getheaders({'clientType':'1','id': ids[0], 'nid': ids[1]})).json()
-        vlist=[]
-        for i in pdata['data']['list']:vlist.extend([i['resolutionName'],i['url']])
-        return {'parse':0,'url':vlist,'header':self.header}
+        ids = id.split('@@')
+        pdata = self.fetch(f"{self.host}/api/mw-movie/anonymous/v2/video/episode/url?clientType=1&id={ids[0]}&nid={ids[1]}", headers=self.getheaders({'clientType': '1', 'id': ids[0], 'nid': ids[1]})).json()
+        playUrl = ''
+        for i in pdata.get('data', {}).get('list', []):
+            if i.get('url'):
+                playUrl = i['url']
+        return {'parse': 0, 'url': playUrl, 'header': self.header}
 
     def localProxy(self, param):
         pass
