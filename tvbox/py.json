@@ -20,7 +20,9 @@
 		"name": "🥇️┃金牌┃影视",
 		"type": 3,
 		"api": "./py/金牌影视.py",
-		"ext": ""
+		"ext": {
+            "site": "https://www.jiabaide.cn"
+        }
 	},	
 	{	"key": "爱电影",
 		"name": "🥇️┃爱电影┃影视",

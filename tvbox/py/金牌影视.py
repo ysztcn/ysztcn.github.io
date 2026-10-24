@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 # by @嗷呜
 import json
-import threading
 import uuid
-import requests
 import time
 from Crypto.Hash import MD5, SHA1
 from base.spider import Spider
@@ -20,15 +18,16 @@ class Spider(Spider):
         "filterable": 1,
         "changeable": 1,
         "ext": {
-            "site": "https://www.jiabaide.cn,域名2,域名3"
+            "site": "域名2"
         }
     },
     '''
     def init(self, extend=""):
-        hosts = "https://www.jiabaide.cn"
+        self.host = "https://www.jpyy.com"
         if extend:
-            hosts=json.loads(extend)['site']
-        self.host = self.host_late(hosts)
+            site = json.loads(extend).get('site', '').split(',')[0].strip()
+            if site:
+                self.host = site
         print("最终使用域名："+self.host)
         pass
 
@@ -158,37 +157,6 @@ class Spider(Spider):
 
     def localProxy(self, param):
         pass
-
-    def host_late(self, url_list):        
-        if isinstance(url_list, str):
-            print(url_list)
-            urls = [u.strip() for u in url_list.split(',') if u.strip()]
-        else:
-            urls = [u.strip() for u in (url_list or []) if u and u.strip()]
-        print(urls)
-        if not urls:
-            return 'https://www.hkybqufgh.com'
-        if len(urls) <= 1:
-            return urls[0] if urls else ''
-
-        results = {}
-        threads = []
-
-        def test_host(url):
-            try:
-                start_time = time.time()
-                response = requests.head(url, timeout=1.0, allow_redirects=False)
-                delay = (time.time() - start_time) * 1000
-                results[url] = delay
-            except Exception as e:
-                results[url] = float('inf')
-        for url in urls:
-            t = threading.Thread(target=test_host, args=(url,))
-            threads.append(t)
-            t.start()
-        for t in threads:
-            t.join()
-        return min(results.items(), key=lambda x: x[1])[0]
 
     def md5(self, sign_key):
         md5_hash = MD5.new()
