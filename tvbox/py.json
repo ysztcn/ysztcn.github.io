@@ -32,11 +32,21 @@
             "site": "https://www.ivdy.com"
         }
 	},
-	{	"key": "小苹果",
-		"name": "🍎┃小苹果┃影视",
+	{	"key": "vidhub",
+		"name": "📺┃vidhub┃影视",
 		"type": 3,
-		"api": "./py/小苹果.py",
+		"api": "./py/vidhub.py",
 		"ext":""
+	},
+	{	"key": "皮皮驴",
+		"name": "🐴┃皮皮驴┃视频",
+		"type": 3,
+		"api": "./py/皮皮驴.py"
+	},
+	{	"key": "永乐视频",
+		"name": "🎬┃永乐┃视频",
+		"type": 3,
+		"api": "./py/永乐视频.py"
 	},
 	{	"key": "永乐视频",
 		"name": "🎬┃永乐┃视频",
