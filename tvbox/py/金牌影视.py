@@ -147,12 +147,17 @@ class Spider(Spider):
             'Origin': self.host,
             'Referer': f'{self.host}/'
         }
-        ids = id.split('@@')
-        pdata = self.fetch(f"{self.host}/api/mw-movie/anonymous/v2/video/episode/url?clientType=1&id={ids[0]}&nid={ids[1]}", headers=self.getheaders({'clientType': '1', 'id': ids[0], 'nid': ids[1]})).json()
+        # id 格式: "集数序号$vod_id@@ep_nid" 或 "vod_id@@ep_nid"
+        parts = id.split('@@')
+        vod_id = parts[0].split('$')[-1]  # 去掉集数序号前缀
+        ep_nid = parts[1]
+        pdata = self.fetch(f"{self.host}/api/mw-movie/anonymous/v2/video/episode/url?clientType=1&id={vod_id}&nid={ep_nid}", headers=self.getheaders({'clientType': '1', 'id': vod_id, 'nid': ep_nid})).json()
         playUrl = ''
+        # 直接取列表第一个（通常是最高清），不检查 needLogin 字段（实测无需登录即可播放）
         for i in pdata.get('data', {}).get('list', []):
             if i.get('url'):
                 playUrl = i['url']
+                break
         return {'parse': 0, 'url': playUrl, 'header': self.header}
 
     def localProxy(self, param):
