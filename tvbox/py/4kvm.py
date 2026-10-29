@@ -171,21 +171,24 @@ class Spider(Spider):
   def _extract_episodes(self, doc, userlink: str = "") -> list:
     episodes = []
     seenIds = set()
-    selectors = ["a.episode-link", "a[href^='/play/']"]
-    for sel in selectors:
-      for ep_link in doc(sel).items():
-        href = ep_link.attr("href")
-        if not href:
-          continue
-        epVodId = href.split("/play/")[-1].split("?")[0]
-        if not epVodId or epVodId in seenIds:
-          continue
-        seenIds.add(epVodId)
-        dataid = ep_link.attr("dataid") or ""
-        ep_name = ep_link.text().strip()
-        if not ep_name or len(ep_name) > 5:
-          ep_name = f"第{len(episodes)+1}集"
-        episodes.append(f"{ep_name}$4kvm://{dataid}|{userlink}/{href}")
+    # 剧集链接带 dataid（worker 的 play_id）；页面其他位置的 /play/ 链接是相关推荐，
+    # 没有 dataid，混入选集会导致点开取不到播放地址
+    links = doc("a.episode-link").items()
+    if not doc("a.episode-link"):
+      links = doc("a[href^='/play/'][dataid]").items()
+    for ep_link in links:
+      href = ep_link.attr("href")
+      dataid = ep_link.attr("dataid") or ""
+      if not href or not dataid:
+        continue
+      epVodId = href.split("/play/")[-1].split("?")[0]
+      if not epVodId or epVodId in seenIds:
+        continue
+      seenIds.add(epVodId)
+      ep_name = ep_link.text().strip()
+      if not ep_name or len(ep_name) > 5:
+        ep_name = f"第{len(episodes)+1}集"
+      episodes.append(f"{ep_name}$4kvm://{dataid}|{userlink}/{href}")
     return episodes
 
   def _scrapeFilterOptions(self) -> list:
@@ -389,10 +392,12 @@ class Spider(Spider):
     if not id:
       return {"parse": 0, "url": ""}
     if id.startswith("4kvm://"):
-      m = re.match(r"4kvm://(\d+)\|([^/]*)(/.*)", id)
+      m = re.match(r"4kvm://([^|]*)\|([^/]*)(/.*)", id)
       if not m:
         return {"parse": 0, "url": ""}
       dataid, userlink, path = m.group(1), m.group(2), m.group(3)
+      if not dataid:
+        return {"parse": 1, "url": f"{self.baseUrl}{path}", "header": self._headers}
       vod = path.split("/play/")[-1].split("?")[0] if "/play/" in path else path
       params = {
         "dataid": dataid,
@@ -404,9 +409,10 @@ class Spider(Spider):
         body = resp.json()
         if body.get("code") == 200 and body.get("data", {}).get("quality_urls"):
           unlocked = [q for q in body["data"]["quality_urls"] if not q.get("locked")]
-          valid = unlocked if unlocked else body["data"]["quality_urls"]
-          best = max(valid, key=lambda q: q.get("bitrate", 0))
-          return {"parse": 0, "url": best["url"]}
+          valid = [q for q in (unlocked or body["data"]["quality_urls"]) if str(q.get("url", "")).startswith("http")]
+          if valid:
+            best = max(valid, key=lambda q: q.get("bitrate", 0))
+            return {"parse": 0, "url": best["url"]}
       except Exception:
         pass
       return {"parse": 1, "url": f"{self.baseUrl}{path}", "header": self._headers}
