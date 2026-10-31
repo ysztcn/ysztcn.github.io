@@ -3,9 +3,15 @@
   "wallpaper": "https://深色壁纸.xxooo.cf/",
   "sites": [	
 	{	"key": "4kvm",
-		"name": "🖥️┃4kvm┃影视",
+		"name": "🎬┃4kvm┃影视",
 		"type": 3,
 		"api": "./py/4kvm.py",
+		"ext":""
+	},
+	{	"key": "影探4K",
+		"name": "🎬┃影探4K┃影视",
+		"type": 3,
+		"api": "./py/影探4K.py",
 		"ext":""
 	},
 	{	"key": "shuju",
