@@ -153,17 +153,11 @@ class Spider(Spider):
         ep_nid = parts[1]
         pdata = self.fetch(f"{self.host}/api/mw-movie/anonymous/v2/video/episode/url?clientType=1&id={vod_id}&nid={ep_nid}", headers=self.getheaders({'clientType': '1', 'id': vod_id, 'nid': ep_nid})).json()
         playUrl = ''
-        # 优先取 720P（1080P 多为 10-bit High10，低端盒子 ijk 软解卡顿、exo 硬解色彩异常）
-        # 没有 720P 时退而求其次取列表里第一个有效地址
+        # 直接取列表第一个（通常是最高清），不检查 needLogin 字段（实测无需登录即可播放）
         for i in pdata.get('data', {}).get('list', []):
-            if i.get('resolution') == 720 and i.get('url'):
+            if i.get('url'):
                 playUrl = i['url']
                 break
-        if not playUrl:
-            for i in pdata.get('data', {}).get('list', []):
-                if i.get('url'):
-                    playUrl = i['url']
-                    break
         return {'parse': 0, 'url': playUrl, 'header': self.header}
 
     def localProxy(self, param):

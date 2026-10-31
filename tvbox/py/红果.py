@@ -1068,7 +1068,7 @@ class _StreamSession:
             yield block
             cursor += len(block)
 
-def _stream_session(video_id: str, config: Mapping[str, Any], quality: str = "1080") -> "_StreamSession":
+def _stream_session(video_id: str, quality: str = "1080") -> "_StreamSession":
     quality = quality if quality in _QUALITY_LINE_NAME_TO_Q else "1080"
     requested_key = "%s|%s" % (video_id, quality)
     with _STREAM_LOCK:
@@ -1078,7 +1078,7 @@ def _stream_session(video_id: str, config: Mapping[str, Any], quality: str = "10
         session = sessions.get(requested_key)
     if session is not None:
         return session
-    model = _video_model(video_id, config)
+    model = _video_model(video_id)
     rows = _video_list_from_model(model)
     key_seed = _key_seed_from_model(model)
     last_error: Any = None
@@ -1161,8 +1161,6 @@ class _StreamHandler(BaseHTTPRequestHandler):
         return {
             "vid": video_id if video_id.isdigit() else "",
             "quality": (query.get("q") or ["1080"])[0],
-            "device_id": (query.get("did") or [""])[0],
-            "install_id": (query.get("iid") or [""])[0],
         }
 
     def _fail(self, code: int, message: bytes) -> None:
@@ -1192,14 +1190,7 @@ class _StreamHandler(BaseHTTPRequestHandler):
             self._fail(400, b"missing vid")
             return
         try:
-            session = _stream_session(
-                params["vid"],
-                {
-                    "device_id": params["device_id"],
-                    "install_id": params["install_id"],
-                },
-                params["quality"],
-            )
+            session = _stream_session(params["vid"], params["quality"])
         except Exception:
             self._fail(502, b"media session failed")
             return
@@ -1249,6 +1240,14 @@ def _start_stream_server() -> int:
             _STREAM_STATE["server"] = server
             return port
     return 0
+
+def _warm_stream_session(video_id: str, quality: str) -> None:
+    """播放前预热: 注册设备号、签名、拉 moov 提前跑完, 播放器连上来直接命中会话缓存。"""
+    try:
+        _stream_session(video_id, quality)
+    except Exception:
+        pass
+
 def _b64(value: str) -> bytes:
     text = _text(value)
     text += "=" * (-len(text) % 4)
@@ -3295,8 +3294,59 @@ def _gen_medusa(url: str, url_params: Mapping[str, Any], devices: Mapping[str, A
     return base64.b64encode(version_or + hash_bytes[:2] + (256).to_bytes(2, "little") + mixed).decode()
 
 def _fresh_devices():
-    """每次签名 18 位随机设备号对 (实测: 同设备号对同 vid 仅签一次, 换新设备恒可用)。"""
+    """随机 18 位设备号对: 分类/详情接口接受未注册号, 播放签名接口不接受。"""
     return str(random.randint(10 ** 17, 10 ** 18 - 1)), str(random.randint(10 ** 17, 10 ** 18 - 1))
+
+DEVICE_REGISTER_URL = "https://log.snssdk.com/service/2/device_register/"
+REGISTER_UA = (
+    "com.phoenix.read/73532 (Linux; U; Android 16; zh_CN; 25053RT47C; "
+    "Build/BP2A.250605.031.A3; Cronet/TTNetVersion:04657795 2026-01-23 "
+    "QuicVersion:c67e9834 2025-09-08)"
+)
+
+def _uuid_text() -> str:
+    raw = os.urandom(16).hex()
+    return "%s-%s-%s-%s-%s" % (raw[:8], raw[8:12], raw[12:16], raw[16:20], raw[20:])
+
+def _register_devices() -> tuple[str, str]:
+    """注册一对设备号。播放签名接口只认服务端登记过的新设备号, 且一对号只能签一次。"""
+    header = {
+        "display_name": "红果免费短剧", "aid": 8662, "app_version": "7.3.5.32",
+        "version_code": 73532, "manifest_version_code": 73532,
+        "update_version_code": 73532, "channel": "update_64",
+        "package": "com.phoenix.read", "app_language": "zh", "os": "Android",
+        "os_version": "16", "os_api": 36, "device_model": "25053RT47C",
+        "device_brand": "Redmi", "device_manufacturer": "Xiaomi",
+        "cpu_abi": "arm64-v8a", "density_dpi": 520, "display_density": "xxhdpi",
+        "resolution": "2772x1280", "language": "zh", "timezone": 8,
+        "access": "wifi", "openudid": os.urandom(8).hex(),
+        "clientudid": _uuid_text(), "cdid": _uuid_text(), "region": "CN",
+        "tz_name": "Asia/Shanghai", "tz_offset": 28800, "sim_region": "cn",
+        "device_platform": "android", "not_request_sender": 0,
+        "is_system_app": 0, "sdk_flavor": "china", "rom": "OS2.0",
+        "rom_version": "BP2A.250605.031.A3",
+    }
+    body = json.dumps(
+        {"magic_tag": "ss_app_log", "header": header, "_gen_time": int(time.time() * 1000)},
+        separators=(",", ":"),
+    ).encode("utf-8")
+    query = urlencode({"req_id": _uuid_text(), "_rticket": int(time.time() * 1000)})
+    response = _gpost(
+        DEVICE_REGISTER_URL + "?" + query,
+        data=body,
+        headers={
+            "User-Agent": REGISTER_UA,
+            "Accept": "application/json",
+            "Content-Type": "application/json; charset=utf-8",
+        },
+        timeout=20,
+    )
+    data = _json_response(response)
+    device_id = str(data.get("device_id_str") or data.get("device_id") or "")
+    install_id = str(data.get("install_id_str") or data.get("install_id") or "")
+    if not device_id.isdigit() or not install_id.isdigit() or device_id == "0" or install_id == "0":
+        raise HongguoPluginError("设备注册失败: %s" % json.dumps(data, ensure_ascii=False)[:200])
+    return device_id, install_id
 
 
 def _core_sixgod(url: str, params: Mapping[str, Any], devices: Mapping[str, Any], data: Any, header: Mapping[str, Any]) -> tuple[dict[str, str], str]:
@@ -3342,39 +3392,9 @@ def _device_config(config: Mapping[str, Any]) -> dict[str, str]:
         "ua": APP_UA,
     }
 
-def _video_model(video_id: str, config: Mapping[str, Any]) -> dict[str, Any]:
-    """六神签名取 video_model。服务端限制: 同设备号对同 vid 仅签一次,
-    每次尝试换新 18 位设备号, 空模型最多重试 3 轮。"""
-    devices = _device_config(config)
-    params = {
-        "iid": devices["install_id"],
-        "device_id": devices["device_id"],
-        "ac": "wifi",
-        "channel": "update_64",
-        "aid": "8662",
-        "app_name": "novelread",
-        "version_code": "71332",
-        "version_name": "7.1.3.32",
-        "device_platform": "android",
-        "os": "android",
-        "ssmix": "a",
-        "device_type": "25053RT47C",
-        "device_brand": "Redmi",
-        "language": "zh",
-        "os_api": "36",
-        "os_version": "16",
-        "manifest_version_code": "71332",
-        "resolution": "1280*2772",
-        "dpi": "520",
-        "update_version_code": "71332",
-        "host_abi": "arm64-v8a",
-        "dragon_device_type": "phone",
-        "pv_player": "71332",
-        "compliance_status": "0",
-        "need_personal_recommend": "1",
-        "player_so_load": "1",
-        "is_android_pad_screen": "0",
-    }
+def _video_model(video_id: str) -> dict[str, Any]:
+    """六神签名取 video_model。服务端限制: 每对注册设备号只能签一次,
+    每次尝试先注册新号, 设备号用过或注册失败都不会退回随机号。"""
     payload = {
         "biz_param": {
             "detail_page_version": 0,
@@ -3400,27 +3420,48 @@ def _video_model(video_id: str, config: Mapping[str, Any]) -> dict[str, Any]:
         "x-vc-bdturing-sdk-version": "3.7.2.cn",
     }
     body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-    response_data = None
-    last_err = None
-    for attempt in range(3):
-        if attempt:
-            # 同设备号已用过: 换新设备号重签
-            nd = _fresh_devices()
-            devices = _device_config({
-                "device_id": nd[0],
-                "install_id": nd[1],
-            })
-            params["iid"] = nd[1]
-            params["device_id"] = nd[0]
+    last_err: Any = None
+    for attempt in range(2):
+        device_id, install_id = _register_devices()
+        devices = _device_config({"device_id": device_id, "install_id": install_id})
+        params = {
+            "iid": install_id,
+            "device_id": device_id,
+            "ac": "wifi",
+            "channel": "update_64",
+            "aid": "8662",
+            "app_name": "novelread",
+            "version_code": "71332",
+            "version_name": "7.1.3.32",
+            "device_platform": "android",
+            "os": "android",
+            "ssmix": "a",
+            "device_type": "25053RT47C",
+            "device_brand": "Redmi",
+            "language": "zh",
+            "os_api": "36",
+            "os_version": "16",
+            "manifest_version_code": "71332",
+            "resolution": "1280*2772",
+            "dpi": "520",
+            "update_version_code": "71332",
+            "host_abi": "arm64-v8a",
+            "dragon_device_type": "phone",
+            "pv_player": "71332",
+            "compliance_status": "0",
+            "need_personal_recommend": "1",
+            "player_so_load": "1",
+            "is_android_pad_screen": "0",
+        }
         signed_headers, signed_url = _core_sixgod(
             VIDEO_URL, params, devices, payload, request_headers
         )
+        response_data = None
         try:
             response = _gpost(signed_url, data=body, headers=signed_headers, timeout=30)
             response_data = _json_response(response)
         except Exception as e:
             last_err = e
-            response_data = None
         data = response_data.get("data") if isinstance(response_data, Mapping) else None
         entry = None
         if isinstance(data, Mapping):
@@ -3445,8 +3486,10 @@ def _video_model(video_id: str, config: Mapping[str, Any]) -> dict[str, Any]:
                 raw_model = None
         if isinstance(raw_model, Mapping) and raw_model:
             return dict(raw_model)
-        time.sleep(0.6 * (attempt + 1))
-    raise HongguoPluginError("video_model 为空 (3轮设备重试后仍无): %s" % (last_err,))
+        if last_err is None:
+            last_err = HongguoPluginError("上游返回里没有 video_model")
+        time.sleep(0.3)
+    raise HongguoPluginError("video_model 为空 (2 轮注册签名后仍无): %s" % (last_err,))
 
 def _video_list_from_model(model: Mapping[str, Any]) -> Any:
     for key in ("video_list", "dynamic_video_list"):
@@ -3635,13 +3678,6 @@ def _local_proxy(self, param):
         return [400, "text/plain; charset=utf-8", b"missing vid"]
 
     try:
-        _dp, _ip = str(param.get("did") or ""), str(param.get("iid") or "")
-        if not (_dp and _ip):
-            _dp, _ip = _fresh_devices()
-        cfg = {
-            "device_id": _dp,
-            "install_id": _ip,
-        }
         user_q = str(param.get("q") or param.get("quality") or "").strip()
         # 有原生 AES：优先 1080；纯 Python AES 很慢：先 720 保证能播，再尝试更高
         if user_q:
@@ -3669,7 +3705,7 @@ def _local_proxy(self, param):
             if cached and _playable_content(cached):
                 return [200, "video/mp4", cached]
 
-        model = _video_model(vid, cfg)
+        model = _video_model(vid)
         rows = _video_list_from_model(model)
         if not rows:
             return [500, "text/plain; charset=utf-8", b"empty video list"]
@@ -3801,35 +3837,6 @@ class Spider(_BaseSpider):
         self._conn_tls = threading.local()
         # 最近一次 HTTP 状态码 (按线程隔离)
         self._stat_tls = threading.local()
-
-        # 播放层设备号兜底 (实际每次调用现生成, 见 _fresh_devices)
-        self.device_id, self.install_id = _fresh_devices()
-
-    # ==================== 壳协议接口 ====================
-
-    def getName(self):
-        return self.name
-
-    def init(self, cfg=""):
-        pass
-
-    def getDependence(self):
-        # 默影视壳启动时 callAttr 探测, 返回空依赖表
-        return {}
-
-    def download(self, path, url):
-        # 依赖下载协议: callAttr("download", 本地目标路径, 远程URL)
-        try:
-            req = urllib.request.Request(url, headers={"User-Agent": self.ua})
-            data = urllib.request.urlopen(req, timeout=30, context=self._ctx).read()
-            with open(path, "wb") as f:
-                f.write(data)
-        except Exception:
-            pass
-        return ""
-
-    def isVPAYard(self, flag):
-        return False
 
     # ==================== 壳协议接口 ====================
 
@@ -4305,7 +4312,7 @@ class Spider(_BaseSpider):
         360线路: 先探公开直链 /video/public/{vid}/360p.mp4 (206=CDN直出, 免本地服务;
                  404=锁定/无公开版 -> 签名CENC流)
         480+线路: 六神签名 + CENC 流式解密本地流 127.0.0.1:{port}/hg.mp4
-        设备标识每次现生成(18位): 服务端限制同设备对同vid仅签一次。"""
+        设备号每次签名前注册新号: 服务端只认登记过的号, 且一对号只能签一次。"""
         result = {
             "parse": 0,
             "playUrl": "",
@@ -4353,21 +4360,21 @@ class Spider(_BaseSpider):
                     proxy = (self.getProxyUrl() or "").strip()
             except Exception:
                 proxy = ""
-            did, iid = _fresh_devices()
             if proxy:
                 sep = "&" if "?" in proxy else "?"
-                proxy_url = proxy + sep + urlencode(
-                    {"vid": vid, "q": q, "hg": "cenc", "did": did, "iid": iid})
+                proxy_url = proxy + sep + urlencode({"vid": vid, "q": q, "hg": "cenc"})
                 # 壳代理未必真的喂视频(官方的 9978 do=py 就回 200 文本); 校验通过才用, 否则回退自托管
                 if _proxy_serves_video(proxy_url):
                     result["url"] = proxy_url
                     return result
             # 3) 自托管 CENC 流 (进程内 ThreadingHTTPServer, 任意壳可用)
+            # 播放器连上来才建会话要等 1~2 秒; 先异步预热, 注册/签名/拉 moov 走后台线程
+            threading.Thread(
+                target=_warm_stream_session, args=(vid, q), daemon=True).start()
             port = _start_stream_server()
             if not port:
                 return result
-            result["url"] = "http://127.0.0.1:%d/hg.mp4?vid=%s&q=%s&did=%s&iid=%s" % (
-                port, vid, q, did, iid)
+            result["url"] = "http://127.0.0.1:%d/hg.mp4?vid=%s&q=%s" % (port, vid, q)
             return result
         except Exception:
             pass
