@@ -29,7 +29,12 @@
 		"ext": {
             "site": "https://www.jiabaide.cn"
         }
-	},	
+	},
+	{	"key": "小苹果",
+        "name": "🍎┃小苹果┃短剧",
+        "type": 3,
+        "api": "./py/小苹果.py"
+    },	
 	{	"key": "爱电影",
 		"name": "🥇️┃爱电影┃影视",
 		"type": 3,
