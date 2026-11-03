@@ -1,9 +1,5 @@
 # coding=utf-8
 #!/usr/bin/python
-import sys
-from pathlib import Path
-root = Path(__file__).parent.parent.resolve()
-sys.path.insert(0, str(root))  
 from base.spider import Spider
 import json
 import re
@@ -56,7 +52,7 @@ class Spider(Spider):
         return result
 
     def homeVideoContent(self):
-        return {"list": []}
+        return {"list": self.homeContent(False)["list"]}
 
     def categoryContent(self, tid, pg, filter, extend):
         data = self._fetchJson(f"{tid}.json")
@@ -119,7 +115,7 @@ class Spider(Spider):
 
         if id.startswith("BV"):
             bvid, aid, cid = id.split("+")[:3]
-            apiUrl = f"https://api.bilibili.com/x/player/playurl?avid={aid}&cid={cid}&qn=80&fnval=0"
+            apiUrl = f"https://api.bilibili.com/x/player/playurl?avid={aid}&cid={cid}&qn=80&fnval=0&platform=html5&high_quality=1"
             rsp = self.fetch(apiUrl, headers=BILI_HEADERS)
             if rsp.status_code == 200:
                 playData = rsp.json()
@@ -138,7 +134,7 @@ class Spider(Spider):
                 playData = rsp.json()
                 aid = playData["data"]["aid"]
                 cid = playData["data"]["cid"]
-                apiUrl = f"https://api.bilibili.com/x/player/playurl?avid={aid}&cid={cid}&qn=80&fnval=0"
+                apiUrl = f"https://api.bilibili.com/x/player/playurl?avid={aid}&cid={cid}&qn=80&fnval=0&platform=html5&high_quality=1"
                 rsp = self.fetch(apiUrl, headers=BILI_HEADERS)
                 if rsp.status_code == 200:
                     playData = rsp.json()
