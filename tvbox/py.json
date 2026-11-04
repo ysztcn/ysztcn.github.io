@@ -5,7 +5,7 @@
 	{	"key": "豆瓣",
 		"name": "🌚┃豆瓣┃影视",
 		"type": 3,
-		"searchable":0
+		"searchable":0,
 		"api": "./py/豆瓣.py",
 		"ext":""
 	},
