@@ -45,15 +45,31 @@
 	{	"key": "爱电影",
 		"name": "🥇️┃爱电影┃影视",
 		"type": 3,
-		"api": "./py/金牌影视.py",
-		"ext": {
-            "site": "https://www.ivdy.com"
-        }
+		"api": "./py/爱电影.py",
+		"ext": ""
 	},
 	{	"key": "vidhub",
 		"name": "📺┃vidhub┃影视",
 		"type": 3,
 		"api": "./py/vidhub.py",
+		"ext":""
+	},
+	{	"key": "独播库",
+		"name": "📺┃独播库┃影视",
+		"type": 3,
+		"api": "./py/独播库.py",
+		"ext":""
+	},
+	{	"key": "多多追剧",
+		"name": "📺┃多多追剧┃影视",
+		"type": 3,
+		"api": "./py/多多追剧.py",
+		"ext":""
+	},
+	{	"key": "壹影视",
+		"name": "📺┃壹影视┃影视",
+		"type": 3,
+		"api": "./py/壹影视.py",
 		"ext":""
 	},
 	{	"key": "皮皮驴",
