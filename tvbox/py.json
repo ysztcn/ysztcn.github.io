@@ -29,6 +29,14 @@
 		"api": "./py/shuju.py",
 		"ext":""
 	},
+	{	"key": "bilibili",
+		"name": "📚️┃bilibili",
+		"type": 3,		
+		"searchable": 0,
+		"quickSearch": 0,
+		"api": "./py/bilibili.py",
+		"ext":""
+	},
 	{	"key": "金牌",
 		"name": "🥇️┃金牌┃影视",
 		"type": 3,
@@ -64,6 +72,12 @@
 		"name": "📺┃多多追剧┃影视",
 		"type": 3,
 		"api": "./py/多多追剧.py",
+		"ext":""
+	},
+	{	"key": "咕噜咕噜",
+		"name": "📺┃咕噜咕噜┃影视",
+		"type": 3,
+		"api": "./py/咕噜咕噜.py",
 		"ext":""
 	},
 	{	"key": "壹影视",
