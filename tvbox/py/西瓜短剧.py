@@ -2,6 +2,7 @@
 # coding=utf-8
 
 import json
+import ssl
 import time
 import urllib.error
 import urllib.parse
@@ -29,6 +30,7 @@ class Spider(Spider):
   def init(self, extend=""):
     self._token = ""
     self._tokenExp = 0
+    self._opener = None
     if extend:
       try:
         cfg = json.loads(extend)
@@ -46,9 +48,17 @@ class Spider(Spider):
         payload = body.encode("utf-8") if isinstance(body, str) else body
       if needAuth:
         headers["Authorization"] = "Bearer " + self._getToken()
+      # 每次新建 urlopen 会重新加载 Windows 证书库，耗时可达数十秒；改为复用同一个 opener
+      if self._opener is None:
+        context = ssl.create_default_context()
+        # http/client.py 只在未显式传 context 时补这两项，缺了 ALPN 会被站点防护拒绝
+        context.set_alpn_protocols(['http/1.1'])
+        if context.post_handshake_auth is not None:
+          context.post_handshake_auth = True
+        self._opener = urllib.request.build_opener(urllib.request.HTTPSHandler(context=context))
       request = urllib.request.Request(self._apiHost + path, data=payload, headers=headers, method=method)
       try:
-        with urllib.request.urlopen(request, timeout=20) as resp:
+        with self._opener.open(request, timeout=20) as resp:
           text = resp.read().decode("utf-8", "replace")
       except urllib.error.HTTPError as e:
         if needAuth and attempt == 0 and e.code in (401, 403):
@@ -67,10 +77,13 @@ class Spider(Spider):
   def _getToken(self):
     if self._token and self._tokenExp > time.time() + 600:
       return self._token
-    data = self._fetchApi("/api/auth/guest-login", method="POST", body='{"guestToken":""}', needAuth=False)
-    if isinstance(data, dict) and data.get("access_token"):
-      self._token = data["access_token"]
-      self._tokenExp = int(time.time()) + int(data.get("expires_in", 604800))
+    for _ in range(3):
+      data = self._fetchApi("/api/auth/guest-login", method="POST", body='{"guestToken":""}', needAuth=False)
+      if isinstance(data, dict) and data.get("access_token"):
+        self._token = data["access_token"]
+        self._tokenExp = int(time.time()) + int(data.get("expires_in", 604800))
+        return self._token
+      time.sleep(1)
     return self._token
 
   def homeContent(self, filter):

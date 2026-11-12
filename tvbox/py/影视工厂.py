@@ -1,20 +1,25 @@
 # coding=utf-8
 #!/usr/bin/env python3
 import re
-import sys
+import ssl
 import time
+import urllib.error
 import urllib.parse
-import requests
+import urllib.request
+
 from bs4 import BeautifulSoup
 import json
 
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-from pathlib import Path
-root = Path(__file__).parent.parent.resolve()
-sys.path.insert(0, str(root))
 from base.spider import Spider
+
+
+class _Response:
+  """模拟 requests.Response 的最小接口，供爬虫各方法检查状态码与正文。"""
+
+  def __init__(self, status_code, text):
+    self.status_code = status_code
+    self.text = text
+
 
 class Spider(Spider):
     def getName(self):
@@ -26,9 +31,14 @@ class Spider(Spider):
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
             'Referer': self.host
         }
-        self.session = requests.Session()
-        self.session.verify = False
-        self.session.headers.update(self.headers)
+        # requests 的 TLS 指纹会被 Cloudflare 挑战页拦截，改用 urllib；显式传 context 时必须补 ALPN
+        context = ssl.create_default_context()
+        context.set_alpn_protocols(['http/1.1'])
+        if context.post_handshake_auth is not None:
+            context.post_handshake_auth = True
+        context.check_hostname = False
+        context.verify_mode = ssl.CERT_NONE
+        self._opener = urllib.request.build_opener(urllib.request.HTTPSHandler(context=context))
         self.retry_count = 3
         self.timeout = 30
 
@@ -43,17 +53,22 @@ class Spider(Spider):
             timeout = self.timeout
         for i in range(self.retry_count):
             try:
-                response = self.session.get(url, timeout=timeout, verify=False)
-                response.encoding = 'utf-8'
-                if response.status_code == 200:
-                    return response
-                else:
-                    print(f"请求失败，状态码: {response.status_code}")
+                request = urllib.request.Request(url, headers=self.headers)
+                with self._opener.open(request, timeout=timeout) as resp:
+                    return _Response(resp.status, resp.read().decode('utf-8', 'replace'))
+            except urllib.error.HTTPError as e:
+                print(f"请求失败，状态码: {e.code}")
             except Exception as e:
                 print(f"请求失败 ({i+1}/{self.retry_count}): {e}")
                 if i < self.retry_count - 1:
                     time.sleep(1)
         return None
+
+    def homeVideoContent(self):
+        rsp = self.fetch(self.host)
+        if rsp and rsp.status_code == 200:
+            return {"list": self._extract_videos_from_html(rsp.text)}
+        return {"list": []}
 
     def homeContent(self, filter):
         result = {
@@ -324,47 +339,9 @@ class Spider(Spider):
         if not url:
             return ""
         if url.startswith('//'):
-            return 'http:' + url
+            return 'https:' + url
         if url.startswith('/'):
             return self.host.rstrip('/') + url
         if not url.startswith('http'):
             return self.host + url
         return url
-
-if __name__ == "__main__":
-    spider = Spider()
-    spider.init()
-
-    home_result = spider.homeContent({})
-    print(f"首页分类: {[c['type_name'] for c in home_result['class']]}")
-    print(f"首页视频数量: {len(home_result['list'])}")
-    for i, item in enumerate(home_result['list'][:5], 1):
-        print(f"{i}. 标题: {item['vod_name']}, ID: {item['vod_id']}, 备注: {item['vod_remarks']}")
-
-    print("\n测试分类页（电影）:")
-    cat_result = spider.categoryContent("1", 1, None, None)
-    print(f"电影数量: {len(cat_result['list'])}")
-    for i, item in enumerate(cat_result['list'][:3], 1):
-        print(f"{i}. 标题: {item['vod_name']}, ID: {item['vod_id']}")
-
-    print("\n测试搜索功能:")
-    search_result = spider.searchContent("仙逆", False, 1)
-    print(f"搜索结果数量: {len(search_result['list'])}")
-    for i, item in enumerate(search_result['list'][:5], 1):
-        print(f"{i}. 标题: {item['vod_name']}, ID: {item['vod_id']}, 图片: {item['vod_pic']}")
-
-    if search_result['list']:
-        first_video = search_result['list'][0]
-        detail_result = spider.detailContent([first_video['vod_id']])
-        if detail_result['list']:
-            video_info = detail_result['list'][0]
-            print(f"\n视频详情:")
-            print(f"标题: {video_info['vod_name']}")
-            print(f"类型: {video_info['type_name']}")
-            print(f"年份: {video_info['vod_year']}")
-            print(f"地区: {video_info['vod_area']}")
-            print(f"演员: {video_info['vod_actor']}")
-            print(f"导演: {video_info['vod_director']}")
-            print(f"简介: {video_info['vod_content'][:100]}...")
-            print(f"播放源: {video_info['vod_play_from']}")
-            print(f"播放列表: {video_info['vod_play_url'][:200]}...")
