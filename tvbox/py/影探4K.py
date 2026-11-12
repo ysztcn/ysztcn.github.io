@@ -22,8 +22,8 @@ KEY = 'yingtan4k'
 HOST = 'http://cms.lyyytv.cn'
 CMS_KEY = 'wP5bvxoc3yv7FoBQENFZuAF0EUYr4LTy'
 
-# 解析接口（fys.lyyytv.cn；parsesId=3 已失效，当前可用 5）
-PARSE_API = 'http://fys.lyyytv.cn/api/index?parsesId=5&appid=10001&videoUrl='
+# 解析接口（fys.lyyytv.cn；parsesId=3/5/7 已失效，当前可用 6）
+PARSE_API = 'http://fys.lyyytv.cn/api/index?parsesId=6&appid=10001&videoUrl='
 HEADERS = {'User-Agent': 'okhttp/4.12.0'}
 # 解析请求/回源头：对齐 JS 的 PH，避免 gzip 花屏
 PARSE_HEADERS = {'User-Agent': 'okhttp/4.12.0', 'Accept-Encoding': 'identity'}

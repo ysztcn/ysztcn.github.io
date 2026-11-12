@@ -553,25 +553,35 @@ class Spider(Spider):
     parts = str(id).split("|")
     bvid = parts[0]
     cid = parts[1] if len(parts) >= 2 else ""
-    qn = 80 if self._cookie else 64
     if not cid:
       j = self._api("/x/web-interface/view", {"bvid": bvid})
-      cid = (j.get("data") or {}).get("cid", "")
-    url = ""
-    if self._cookie:
-      # 登录走 DASH(fnval=16), 可取 1080P; 音视频分离, 返回的是视频流
-      j = self._api("/x/player/playurl", {"bvid": bvid, "cid": cid, "qn": qn, "fnval": 16, "fourk": 1})
-      url = self._dashVideoUrl(j.get("data") or {}, qn)
-    if not url:
-      # 匿名 DASH 最高只有 480P, 用 mp4 单流(720P); 登录 DASH 取不到时也退回 mp4
-      j = self._api("/x/player/playurl", {"bvid": bvid, "cid": cid, "qn": qn, "fnval": 1})
-      url = ((j.get("data") or {}).get("durl") or [{}])[0].get("url", "")
-    if not url:
+      d = j.get("data") or {}
+      cid = d.get("cid", "")
+      aid = d.get("aid", "")
+    else:
+      # 已有 cid，获取 aid
+      j = self._api("/x/web-interface/view", {"bvid": bvid})
+      aid = (j.get("data") or {}).get("aid", "")
+    
+    # 采用 shuju 方式：fnval=0 + high_quality=1，获取源文件清晰度列表，取最高清晰度
+    # 优先用 aid+cid，fnval=0 不强制合流，可获取 1080P+ 源文件
+    params = {"cid": cid, "qn": 112, "fnval": 0, "platform": "html5", "high_quality": 1}
+    if aid:
+      params["avid"] = aid
+    else:
+      params["bvid"] = bvid
+    
+    j = self._api("/x/player/playurl", params)
+    durls = ((j.get("data") or {}).get("durl")) or []
+    if not durls:
       return {"parse": 0, "url": "", "msg": f"播放地址获取失败: {self._msgOf(j)}"}
+    
+    # durl 数组按清晰度降序，第一个为最高画质
+    url = durls[0].get("url", "")
     return {
       "parse": 0,
       "url": url,
-      "header": {"User-Agent": self._headers["User-Agent"], "Referer": "https://www.bilibili.com/"},
+      "header": {"User-Agent": self._headers["User-Agent"], "Referer": "https://www.bilibili.com/", "Cookie": self._cookie},
     }
 
   def _dashVideoUrl(self, d, qn):
