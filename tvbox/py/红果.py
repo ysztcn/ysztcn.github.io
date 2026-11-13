@@ -28,7 +28,7 @@ import ssl
 import urllib.error
 import urllib.parse
 import urllib.request
-from urllib.parse import parse_qs, quote, urlencode, urlparse
+from urllib.parse import parse_qs, quote, unquote, urlencode, urlparse
 
 try:
     if '..' not in sys.path:
@@ -782,7 +782,8 @@ _STREAM_CHUNK = 1 << 20
 _STREAM_HEAD_PROBE = 1 << 16
 _STREAM_TTL_SECONDS = 900
 _STREAM_MAX_SESSIONS = 4
-_STREAM_STATE: dict[str, Any] = {"port": 0, "server": None, "sessions": {}}
+_STREAM_INFLIGHT_WAIT = 60
+_STREAM_STATE: dict[str, Any] = {"port": 0, "server": None, "sessions": {}, "inflight": {}}
 _STREAM_LOCK = threading.RLock()
 
 def _toplevel_boxes(buf: bytes) -> list[tuple[int, int, bytes]]:
@@ -1076,47 +1077,86 @@ def _stream_session(video_id: str, quality: str = "1080") -> "_StreamSession":
         for key in [key for key, item in sessions.items() if item.expired()]:
             sessions.pop(key, None)
         session = sessions.get(requested_key)
-    if session is not None:
-        return session
-    model = _video_model(video_id)
-    rows = _video_list_from_model(model)
-    key_seed = _key_seed_from_model(model)
-    last_error: Any = None
-    for wanted in _playable_quality_order(quality):
-        cache_key = "%s|%s" % (video_id, wanted)
+        if session is None:
+            # 预热线程与播放器可能同时请求同一集; in-flight 事件去重,
+            # 避免重复拉 video_model 与 moov (冷启动 3~18s, 重复会叠加首字节延迟)。
+            inflight = _STREAM_STATE["inflight"]
+            event = inflight.get(requested_key)
+            leader = event is None
+            if leader:
+                event = threading.Event()
+                inflight[requested_key] = event
+    if not leader:
+        event.wait(_STREAM_INFLIGHT_WAIT)
         with _STREAM_LOCK:
-            session = _STREAM_STATE["sessions"].get(cache_key)
+            session = _STREAM_STATE["sessions"].get(requested_key)
         if session is not None:
             return session
-        try:
-            _, item = _select_quality(rows, wanted)
-            url = _media_url(item)
-            spade = _spade_value(item)
-            if not url or not spade:
-                last_error = "线路缺少地址或密钥材料 q=%s" % wanted
-                continue
-            if key_seed:
-                try:
-                    url = _decrypt_spade_url(url, key_seed)
-                except HongguoPluginError:
-                    pass
-            total, moov_start, moov = _fetch_moov(url)
-            codec = _video_track_codec(moov)
-            if not _is_playable_video_codec(codec):
-                last_error = "线路视频编码不可解码 q=%s codec=%s" % (wanted, codec)
-                continue
-            session = _StreamSession(url, derive_content_key(spade), total, moov_start, moov)
-        except Exception as error:
-            last_error = error
-            continue
+        # 等待超时仍无会话: 自己升级为 leader 重走一遍
         with _STREAM_LOCK:
-            sessions = _STREAM_STATE["sessions"]
-            while len(sessions) >= _STREAM_MAX_SESSIONS:
-                sessions.pop(next(iter(sessions)), None)
-            sessions[cache_key] = session
-            sessions[requested_key] = session
-        return session
-    raise HongguoPluginError("没有可解码的线路 (%s): %s" % (quality, last_error))
+            inflight = _STREAM_STATE["inflight"]
+            event = inflight.get(requested_key)
+            leader = event is None
+            if leader:
+                event = threading.Event()
+                inflight[requested_key] = event
+    try:
+        last_error: Any = None
+        # 上游偶发抖动 (同一集首次 502、重试即通): 冷启动这里做短重试
+        for _attempt in range(3):
+            try:
+                model = _video_model(video_id)
+                rows = _video_list_from_model(model)
+                key_seed = _key_seed_from_model(model)
+                for wanted in _playable_quality_order(quality):
+                    cache_key = "%s|%s" % (video_id, wanted)
+                    with _STREAM_LOCK:
+                        session = _STREAM_STATE["sessions"].get(cache_key)
+                    if session is not None:
+                        return session
+                    try:
+                        _, item = _select_quality(rows, wanted)
+                        url = _media_url(item)
+                        spade = _spade_value(item)
+                        if not url or not spade:
+                            last_error = "线路缺少地址或密钥材料 q=%s" % wanted
+                            continue
+                        if key_seed:
+                            try:
+                                url = _decrypt_spade_url(url, key_seed)
+                            except HongguoPluginError:
+                                pass
+                        total, moov_start, moov = _fetch_moov(url)
+                        codec = _video_track_codec(moov)
+                        if not _is_playable_video_codec(codec):
+                            last_error = "线路视频编码不可解码 q=%s codec=%s" % (wanted, codec)
+                            continue
+                        session = _StreamSession(url, derive_content_key(spade), total, moov_start, moov)
+                    except Exception as error:
+                        last_error = error
+                        continue
+                    with _STREAM_LOCK:
+                        sessions = _STREAM_STATE["sessions"]
+                        while len(sessions) >= _STREAM_MAX_SESSIONS:
+                            sessions.pop(next(iter(sessions)), None)
+                        sessions[cache_key] = session
+                        sessions[requested_key] = session
+                    return session
+                # 本轮全部线路不可播: 换设备号重取播放模型再试
+                last_error = last_error or HongguoPluginError("没有可解码的线路 (%s)" % quality)
+                _rotate_device_pair()
+            except Exception as error:
+                last_error = error
+            try:
+                time.sleep(0.4 * (_attempt + 1))
+            except Exception:
+                pass
+        raise HongguoPluginError("没有可解码的线路 (%s): %s" % (quality, last_error))
+    finally:
+        if leader:
+            with _STREAM_LOCK:
+                _STREAM_STATE["inflight"].pop(requested_key, None)
+            event.set()
 
 _RANGE_UNSATISFIABLE = "unsatisfiable"
 
@@ -3392,7 +3432,419 @@ def _device_config(config: Mapping[str, Any]) -> dict[str, str]:
         "ua": APP_UA,
     }
 
-def _video_model(video_id: str) -> dict[str, Any]:
+# ===== argus 官方签名取播放模型 (自红果短剧1112.py 移植) =====
+# 官方 web 端签名链路: 设备号可复用, 不受六神链路"一对注册号只能签一次"限制;
+# 六神签名 (_video_model_legacy) 保留作回退。
+
+MASK64 = (1 << 64) - 1
+Z = 0x3DC94C3A046D678B
+
+def _le(value: int, size: int = 8) -> bytes:
+    return int(value).to_bytes(size, "little")
+
+def rotl64(x: int, s: int) -> int:
+    return ((x << s) | (x >> (64 - s))) & MASK64
+
+def rotr64(x: int, s: int) -> int:
+    return ((x >> s) | (x << (64 - s))) & MASK64
+
+class Proto:
+    def __init__(self):
+        self.parts = []
+
+    def _varint(self, v):
+        n = v & 0xFFFFFFFF
+        out = bytearray()
+        while n >= 128:
+            out.append((n & 127) | 128)
+            n >>= 7
+        out.append(n)
+        return bytes(out)
+
+    def put_varint(self, idx, v):
+        self.parts.append(self._varint((idx << 3) | 0) + self._varint(int(v)))
+        return self
+
+    def put_blob(self, idx, data):
+        self.parts.append(self._varint((idx << 3) | 2) + self._varint(len(data)) + bytes(data))
+        return self
+
+    def put_utf8(self, idx, s):
+        return self.put_blob(idx, str("" if s is None else s).encode())
+
+    def put_bytes(self, idx, data):
+        return self.put_blob(idx, data or b"")
+
+    def put_protobuf(self, idx, nested):
+        return self.put_blob(idx, nested.to_buf())
+
+    def to_buf(self):
+        return b"".join(self.parts)
+
+
+class Simon:
+    @staticmethod
+    def key_expansion(k):
+        key = [0] * 72
+        for i in range(4):
+            key[i] = k[i] & MASK64
+        for i in range(4, 72):
+            tmp = rotr64(key[i - 1], 3) ^ key[i - 3]
+            tmp ^= rotr64(tmp, 1)
+            bit = (Z >> ((i - 4) % 62)) & 1
+            key[i] = (~key[i - 4] ^ tmp ^ bit ^ 3) & MASK64
+        return key
+
+    @classmethod
+    def encrypt(cls, x0, x1, k):
+        key = cls.key_expansion(k)
+        xi = x0 & MASK64
+        xi1 = x1 & MASK64
+        for rk in key:
+            tmp = xi1
+            f = rotl64(xi1, 1) & rotl64(xi1, 8)
+            xi1 = (xi ^ f ^ rotl64(xi1, 2) ^ rk) & MASK64
+            xi = tmp
+        return xi, xi1
+
+
+class Ladon:
+    @staticmethod
+    def expand_table(md5_hex):
+        ht = bytearray(288)
+        src = md5_hex.encode()
+        ht[0:len(src)] = src
+        b0 = int.from_bytes(ht[0:8], "little")
+        b8 = int.from_bytes(ht[8:16], "little")
+        temp = [int.from_bytes(ht[16:24], "little"), int.from_bytes(ht[24:32], "little")]
+        for i in range(34):
+            x8 = (rotr64(b8, 8) + b0) & MASK64
+            x8 ^= i
+            temp.append(x8)
+            x8 ^= rotl64(b0, 3)
+            ht[(i + 1) * 8:(i + 1) * 8 + 8] = _le(x8)
+            b0 = x8
+            b8 = temp.pop(0)
+        return [int.from_bytes(ht[i * 8:i * 8 + 8], "little") for i in range(36)]
+
+    @staticmethod
+    def encrypt_block(ht, data, at):
+        d0 = int.from_bytes(data[at:at + 8], "little")
+        d1 = int.from_bytes(data[at + 8:at + 16], "little")
+        for i in range(34):
+            d1 = (ht[i] ^ ((d0 + rotr64(d1, 8)) & MASK64)) & MASK64
+            d0 = (d1 ^ rotl64(d0, 3)) & MASK64
+        return _le(d0) + _le(d1)
+
+    @classmethod
+    def encrypt(cls, khronos, lc_id, aid, rand_bytes):
+        data = ("%d-%d-%d" % (khronos, lc_id, aid)).encode()
+        md5_hex = hashlib.md5(bytes(rand_bytes) + str(aid).encode()).hexdigest()
+        ht = cls.expand_table(md5_hex)
+        size = len(data)
+        new_size = size + (16 - (size % 16))
+        pad_val = new_size - size
+        inp = bytearray([pad_val] * new_size)
+        inp[0:size] = data
+        out = bytearray()
+        for i in range(new_size // 16):
+            out += cls.encrypt_block(ht, inp, i * 16)
+        return base64.b64encode(bytes(rand_bytes) + bytes(out)).decode()
+
+
+SIGN_KEY = bytes.fromhex("fc78e0a9657a0c748ce51559903ccf03510e51d3cff232d71343e88a321c5304")
+AES_KEY = bytes.fromhex("d31e3718288a1027baab59f146a09a9c")
+AES_IV = bytes.fromhex("ea180a0336ed352fcd24e4d50018ae54")
+MAGIC8 = bytes([0xF2, 0xF7, 0xFC, 0xFF, 0xF2, 0xF7, 0xFC, 0xFF])
+TAIL9 = bytes([0xEA, 0xFB, 0x2C, 0xFE, 0x85, 0x68, 0x51, 0x91, 0x54])
+
+
+def pkcs7_pad(buf):
+    pad = 16 - (len(buf) % 16)
+    return bytes(buf) + bytes([pad]) * pad
+
+
+def _aes_cbc(data, key, iv, aes_cls):
+    cipher = aes_cls(key)
+    out = bytearray()
+    prev = bytes(iv)
+    for i in range(0, len(data), 16):
+        blk = bytes(a ^ b for a, b in zip(data[i:i + 16], prev))
+        enc = cipher.encrypt_block(blk)
+        out += enc
+        prev = enc
+    return bytes(out)
+
+
+def argus_sign(query, stub_hex, ts, aid, license_id, device_id, install_id, rand_field, aes_cls, sm3):
+    def qp(name):
+        if not query:
+            return None
+        for part in query.split("&"):
+            eq = part.find("=")
+            k = part if eq < 0 else part[:eq]
+            try:
+                dk = unquote(k)
+            except Exception:
+                dk = k
+            if dk == name:
+                v = "" if eq < 0 else part[eq + 1:]
+                try:
+                    return unquote(v)
+                except Exception:
+                    return v
+        return None
+
+    def body_hash(stub):
+        if not stub:
+            return sm3(bytes(16))[:6]
+        try:
+            return sm3(bytes.fromhex(stub))[:6]
+        except Exception:
+            return sm3(b"")[:6]
+
+    def query_hash(q):
+        if not q:
+            return sm3(bytes(16))[:6]
+        return sm3(q.encode())[:6]
+
+    bean = Proto()
+    bean.put_varint(1, 1077940818)
+    bean.put_varint(2, 2)
+    bean.put_varint(3, rand_field & 0xFFFFFFFF)
+    bean.put_utf8(4, str(1967 if aid == 0 else aid))
+    bean.put_utf8(5, device_id or "")
+    bean.put_utf8(6, str(1611921764 if license_id == 0 else license_id))
+    bean.put_utf8(7, qp("version_name") or "")
+    bean.put_utf8(8, "v04.04.05-ov-android")
+    bean.put_varint(9, 134744640)
+    bean.put_bytes(10, bytes(8))
+    bean.put_varint(11, 0)
+    bean.put_varint(12, (ts << 1) & 0xFFFFFFFF)
+    bean.put_bytes(13, body_hash(stub_hex))
+    bean.put_bytes(14, query_hash(query))
+    sub15 = Proto()
+    sub15.put_varint(1, 1).put_varint(2, 1).put_varint(3, 1).put_varint(7, 0xC792ECCC)
+    bean.put_protobuf(15, sub15)
+    bean.put_utf8(16, install_id or "")
+    bean.put_utf8(20, "none")
+    bean.put_varint(21, 738)
+    sub23 = Proto()
+    sub23.put_utf8(1, "NX551J").put_varint(2, 8196).put_varint(4, 0x80E0D800)
+    bean.put_protobuf(23, sub23)
+    bean.put_varint(25, 2)
+
+    pb = pkcs7_pad(bean.to_buf())
+    key = [int.from_bytes(SIGN_KEY[i * 8:i * 8 + 8], "little") for i in range(4)]
+    enc = bytearray()
+    for i in range(0, len(pb), 16):
+        c0, c1 = Simon.encrypt(int.from_bytes(pb[i:i + 8], "little"),
+                               int.from_bytes(pb[i + 8:i + 16], "little"), key)
+        enc += _le(c0) + _le(c1)
+    un = MAGIC8 + bytes(enc) + TAIL9
+    buf = bytearray(un)
+    for i in range(8, len(un)):
+        buf[i] = un[i] ^ MAGIC8[i % 8]
+    buf.reverse()
+    padded = pkcs7_pad(bytes(buf) + b"ao")
+    sealed = _aes_cbc(padded, AES_KEY, AES_IV, aes_cls)
+    return base64.b64encode(bytes([0xF2, 0x81]) + sealed).decode()
+
+
+# 取流主机轮换: 任一主机故障自动换下一个 (与六神回退共用主机池)
+_VIDEO_HOSTS = (
+    "https://api5-normal-sinfonlinea.fqnovel.com",
+    "https://api5-normal-sinfonlineb.fqnovel.com",
+    "https://api5-normal-lf.fqnovel.com",
+    "https://api5-normal-sinfonline.fqnovel.com",
+)
+_HG_OFFICIAL_PATH = "/novel/player/multi_video_model/v1/"
+_HG_OFFICIAL_UA = (
+    "com.phoenix.read/73932 (Linux; U; Android 14; zh_CN; 23127PN0CC; "
+    "Build/UKQ1.230804.001; Cronet/TTNetVersion:04657795 2026-01-23 "
+    "QuicVersion:c67e9834 2025-09-08)"
+)
+_HG_OFFICIAL_LICENSE = 1611921764
+_HG_OFFICIAL_PARAMS = {
+    "ac": "wifi",
+    "channel": "xiaomi_8662_64",
+    "aid": "8662",
+    "app_name": "novelread",
+    "version_code": "73932",
+    "version_name": "7.3.9.32",
+    "device_platform": "android",
+    "os": "android",
+    "ssmix": "a",
+    "device_type": "23127PN0CC",
+    "device_brand": "Xiaomi",
+    "language": "zh",
+    "os_api": "34",
+    "os_version": "14",
+    "manifest_version_code": "73932",
+    "resolution": "1200*2670",
+    "dpi": "460",
+    "update_version_code": "73932",
+    "host_abi": "arm64-v8a",
+    "dragon_device_type": "phone",
+    "pv_player": "73932",
+    "compliance_status": "0",
+    "need_personal_recommend": "1",
+    "player_so_load": "1",
+    "is_android_pad_screen": "0",
+}
+_HG_BIZ_PARAM = {
+    "detail_page_version": 0,
+    "device_level": 3,
+    "disable_digg_stat": False,
+    "need_all_video_definition": True,
+    "need_mp4_align": False,
+    "use_os_player": False,
+    "use_server_dns": False,
+    "video_platform": 1024,
+}
+
+# 设备号复用状态: argus 签名接受复用号, 成功后存起来, 空模型时才换号
+_DEVICE_LOCK = threading.RLock()
+_DEVICE_STATE: dict[str, Any] = {}
+
+def _working_device_pair() -> dict[str, str] | None:
+    with _DEVICE_LOCK:
+        pair = _DEVICE_STATE.get("pair")
+    if isinstance(pair, dict):
+        did = str(pair.get("device_id") or "")
+        iid = str(pair.get("install_id") or "")
+        if did.isdigit() and iid.isdigit():
+            return {"device_id": did, "install_id": iid}
+    return None
+
+def _store_device_pair(devices: Mapping[str, Any]) -> None:
+    pair = {"device_id": str(devices.get("device_id") or ""),
+            "install_id": str(devices.get("install_id") or "")}
+    if pair["device_id"].isdigit() and pair["install_id"].isdigit():
+        with _DEVICE_LOCK:
+            _DEVICE_STATE["pair"] = pair
+
+def _rotate_device_pair() -> dict[str, str]:
+    """换设备号: 优先注册新号, 注册失败退随机号 (argus 接受未注册号)。"""
+    try:
+        device_id, install_id = _register_devices()
+        pair = {"device_id": device_id, "install_id": install_id}
+    except Exception:
+        device_id, install_id = _fresh_devices()
+        pair = {"device_id": device_id, "install_id": install_id}
+    with _DEVICE_LOCK:
+        _DEVICE_STATE["pair"] = dict(pair)
+    return pair
+
+def _is_empty_model_error(err: BaseException) -> bool:
+    text = str(err)
+    return (
+        "video_model 为空" in text
+        or "video_model 数据为空" in text
+        or "video_model JSON 无效" in text
+        or "argus code" in text
+        or "上游响应不是 JSON" in text
+    )
+
+
+def _hg_build_query(values):
+    parts = []
+    for key, value in values.items():
+        if value is None or value == "":
+            continue
+        parts.append(quote(str(key), safe="") + "=" + quote(str(value), safe=""))
+    return "&".join(parts)
+
+
+def _hg_sm3_bytes(data):
+    return SM3(data).digest()
+
+
+def _hg_official_headers(query, body, ts, device_id, install_id, aid=8662):
+    stub = hashlib.md5(body).hexdigest() if body else ""
+    rand_field = int.from_bytes(os.urandom(4), "little", signed=True)
+    headers = {
+        "x-ss-req-ticket": str(ts * 1000),
+        "x-khronos": str(ts),
+        "x-ladon": Ladon.encrypt(ts, _HG_OFFICIAL_LICENSE, aid, os.urandom(4)),
+        "x-argus": argus_sign(
+            query, stub, ts, aid, _HG_OFFICIAL_LICENSE,
+            device_id, install_id, rand_field, _PureAES128, _hg_sm3_bytes,
+        ),
+    }
+    if stub:
+        headers["x-ss-stub"] = stub.upper()
+    return headers
+
+
+def _video_model_official(video_id: str, devices: Mapping[str, Any]) -> dict[str, Any]:
+    """argus 官方签名取 video_model, 逐个试 _VIDEO_HOSTS。"""
+    cfg = _device_config(devices)
+    payload = {
+        "biz_param": _HG_BIZ_PARAM,
+        "mixed_video_id_map": {"1004": [str(video_id)]},
+    }
+    body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    base_headers = {
+        "User-Agent": _HG_OFFICIAL_UA,
+        "Accept": "application/json; charset=utf-8,application/x-protobuf",
+        "Content-Type": "application/json; charset=UTF-8",
+    }
+    last_err: Any = None
+    for host in _VIDEO_HOSTS:
+        ts = int(time.time())
+        query = _hg_build_query({
+            **_HG_OFFICIAL_PARAMS,
+            "device_id": cfg["device_id"],
+            "iid": cfg["install_id"],
+            "ts": str(ts),
+            "_rticket": str(ts * 1000),
+        })
+        headers = dict(base_headers)
+        headers.update(_hg_official_headers(
+            query, body, ts, cfg["device_id"], cfg["install_id"]))
+        try:
+            response = _gpost(
+                host + _HG_OFFICIAL_PATH + "?" + query,
+                data=body, headers=headers, timeout=15)
+            response.raise_for_status()
+            root = _json_response(response)
+        except Exception as err:
+            last_err = err
+            continue
+        code = root.get("code", root.get("Code", 0))
+        try:
+            code_int = int(code or 0)
+        except (TypeError, ValueError):
+            code_int = -1
+        if code_int != 0:
+            last_err = HongguoPluginError("argus code %s" % code)
+            continue
+        data = root.get("data") or {}
+        if not isinstance(data, Mapping):
+            last_err = HongguoPluginError("video_model 为空")
+            continue
+        entry = data.get(str(video_id))
+        if entry is None and data:
+            entry = list(data.values())[0]
+        if not isinstance(entry, Mapping):
+            last_err = HongguoPluginError("video_model 为空")
+            continue
+        raw_model = entry.get("video_model")
+        if isinstance(raw_model, str):
+            try:
+                raw_model = json.loads(raw_model)
+            except ValueError as exc:
+                raise HongguoPluginError("video_model JSON 无效") from exc
+        if not isinstance(raw_model, Mapping) or not raw_model:
+            last_err = HongguoPluginError("video_model 为空")
+            continue
+        return dict(raw_model)
+    if last_err is None:
+        last_err = HongguoPluginError("video_model 为空")
+    raise last_err
+
+def _video_model_legacy(video_id: str) -> dict[str, Any]:
     """六神签名取 video_model。服务端限制: 每对注册设备号只能签一次,
     每次尝试先注册新号, 设备号用过或注册失败都不会退回随机号。"""
     payload = {
@@ -3490,6 +3942,34 @@ def _video_model(video_id: str) -> dict[str, Any]:
             last_err = HongguoPluginError("上游返回里没有 video_model")
         time.sleep(0.3)
     raise HongguoPluginError("video_model 为空 (2 轮注册签名后仍无): %s" % (last_err,))
+
+def _video_model(video_id: str) -> dict[str, Any]:
+    """取 video_model: argus 官方签名优先 (设备号可复用, 4 主机轮换),
+    空模型时换设备号重试一次; 仍失败退六神签名 (每次注册新号)。"""
+    last_err: Any = None
+    for _ in range(2):
+        devices = _working_device_pair()
+        if devices is None:
+            try:
+                device_id, install_id = _register_devices()
+            except Exception:
+                device_id, install_id = _fresh_devices()
+            devices = {"device_id": device_id, "install_id": install_id}
+        try:
+            model = _video_model_official(video_id, devices)
+        except Exception as err:
+            last_err = err
+            if not _is_empty_model_error(err):
+                break
+            _rotate_device_pair()
+            continue
+        _store_device_pair(devices)
+        return model
+    try:
+        return _video_model_legacy(video_id)
+    except Exception:
+        raise HongguoPluginError(
+            "video_model 为空 (argus 与六神签名均失败): %s" % (last_err,))
 
 def _video_list_from_model(model: Mapping[str, Any]) -> Any:
     for key in ("video_list", "dynamic_video_list"):
