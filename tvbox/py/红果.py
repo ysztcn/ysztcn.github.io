@@ -4578,23 +4578,209 @@ class Spider(_BaseSpider):
                     items.append(vod)
         return items[:24]
 
+    # ==================== 榜单相关 ====================
+    # 一级分类 -> 二级榜单映射 (根据实际页面验证)
+    _RANK_CATS = {
+        "全部": [
+            ("热播榜", "hot-drama"),
+            ("臻果榜", "prestige-drama"),
+            ("新剧榜", "new-drama"),
+            ("预约榜", "subscribe-drama"),
+            ("热搜榜", "hot-search-drama"),
+            ("必看榜", "must-watch-drama"),
+            ("收藏榜", "followed-drama"),
+        ],
+        "漫剧": [
+            ("热播榜", "hot-comic-drama"),
+            ("新剧榜", "new-comic-drama"),
+            ("热搜榜", "hot-search-comic-drama"),
+        ],
+        "真人剧": [
+            ("热播榜", "hot-real-drama"),
+            ("新剧榜", "new-real-drama"),
+            ("热搜榜", "hot-search-real-drama"),
+            ("必看榜", "must-watch-real-drama"),
+            ("收藏榜", "followed-real-drama"),
+        ],
+        "AI剧": [
+            ("热播榜", "hot-ai-drama"),
+            ("新剧榜", "new-ai-drama"),
+            ("热搜榜", "hot-search-ai-drama"),
+            ("必看榜", "must-watch-ai-drama"),
+            ("收藏榜", "followed-ai-drama"),
+        ],
+    }
+
+    def _fetch_rank_board(self, board: str, force_refresh: bool = False) -> list[dict]:
+        """抓取单个榜单: board = hot-drama / prestige-drama / new-drama / subscribe-drama / hot-comic-drama / hot-real-drama / hot-ai-drama / hot-search-drama / must-watch-drama / followed-drama
+        force_refresh=True 时忽略缓存，直接重新请求网页"""
+        # 12 小时缓存（官网每日仅刷新一次）
+        now = time.time()
+        if not hasattr(self, "_rank_cache"):
+            self._rank_cache = {"data": {}, "ts": 0}
+        if not force_refresh and now - self._rank_cache["ts"] < 12 * 3600 and board in self._rank_cache["data"]:
+            return self._rank_cache["data"][board]
+
+        url = "https://hongguoduanju.com/rank/%s" % board
+        try:
+            html = self._fetch(url, retry=2)
+            if not html:
+                return []
+            m = re.search(r"(?:window\.)?_ROUTER_DATA\s*=\s*", html)
+            if not m:
+                return []
+            data = json.JSONDecoder().raw_decode(html[m.end():])[0]
+            loader = (data.get("loaderData") or {})
+            # 榜单页数据在 rank_{board}/page -> content -> rankList
+            target_key = "rank_%s/page" % board
+            page_data = loader.get(target_key)
+            if not page_data:
+                # 兜底：遍历查找包含 rankList 的
+                for key, val in loader.items():
+                    if isinstance(val, dict):
+                        content = val.get("content")
+                        if isinstance(content, dict) and content.get("rankList"):
+                            page_data = val
+                            break
+            if not page_data:
+                return []
+            content = page_data.get("content") or {}
+            rows = content.get("rankList") or []
+            if not rows:
+                return []
+            items = [self._parse_rank_item(x) for x in rows]
+            self._rank_cache["data"][board] = items
+            self._rank_cache["ts"] = now
+            return items
+        except Exception as e:
+            print("榜单 %s 抓取失败: %s" % (board, e))
+        return []
+
+    def _parse_rank_item(self, item: dict) -> dict:
+        # 官网榜单页字段: seriesId/rank/title/cover/primaryMetricText/heatText/scoreText/favoriteText/likeText/tags/description/episodeVids/episodeCount
+        series_id = str(item.get("seriesId") or item.get("id") or "")
+        rank = item.get("rank") or 0
+        title = item.get("title") or ""
+        cover = item.get("cover") or ""
+        heat_text = item.get("primaryMetricText") or item.get("heatText") or ""
+        score_text = item.get("scoreText") or ""
+        favorite_text = item.get("favoriteText") or ""
+        like_text = item.get("likeText") or ""
+        tags = item.get("tags") or []
+        desc = item.get("description") or ""
+
+        return {
+            "vod_id": series_id,
+            "vod_name": title,
+            "vod_pic": self._fix_cover(cover),
+            "vod_remarks": heat_text if heat_text else ("第%s名" % rank if rank else ""),
+            "vod_content": " ".join(filter(None, [
+                "评分 %s" % score_text if score_text else "",
+                "收藏 %s" % favorite_text if favorite_text else "",
+                "赞 %s" % like_text if like_text else "",
+                desc
+            ])),
+            "vod_tag": " / ".join(tags) if tags else "",
+        }
+
+    def _fmt_num(self, n: int) -> str:
+        if n >= 10000:
+            return "%.1f万" % (n / 10000.0)
+        if n >= 1000:
+            return "%.1f千" % (n / 1000.0)
+        return str(n)
+
     # ==================== 标准接口 ====================
     def homeContent(self, filter=True):
         self._ensure_categories()
-        cls = [{"type_name": c["type_name"], "type_id": c["type_id"]} for c in self.categories]
+        # 4个榜单分类置前：全部榜单、漫剧榜单、真人剧榜单、AI剧榜单
+        rank_cls = [
+            {"type_name": "全部榜单", "type_id": "rank_all"},
+            {"type_name": "漫剧榜单", "type_id": "rank_comic"},
+            {"type_name": "真人剧榜单", "type_id": "rank_real"},
+            {"type_name": "AI剧榜单", "type_id": "rank_ai"},
+        ]
+        cls = rank_cls + [{"type_name": c["type_name"], "type_id": c["type_id"]} for c in self.categories]
         result = {"class": cls, "list": []}
         if filter:
-            result["filters"] = self.filters
+            # 榜单分类的二级筛选（全部/漫剧/真人剧/AI剧）
+            rank_filters = {}
+            for cat_name, boards in self._RANK_CATS.items():
+                type_id = "rank_all" if cat_name == "全部" else ("rank_comic" if cat_name == "漫剧" else ("rank_real" if cat_name == "真人剧" else "rank_ai"))
+                rank_filters[type_id] = [{
+                    "key": "board",
+                    "name": "榜单",
+                    "value": [{"n": "全部", "v": ""}] + [{"n": b[0], "v": b[1]} for b in boards]
+                }]
+            # 合并原有 filters 和榜单 filters
+            merged = dict(self.filters)
+            merged.update(rank_filters)
+            result["filters"] = merged
         return result
 
     def homeVideoContent(self):
         try:
-            return {"list": self._home_recommend()}
+            # 首页仅展示：全部榜单的热播榜（扁平视频列表）
+            try:
+                from concurrent.futures import ThreadPoolExecutor, as_completed
+            except ImportError:
+                ThreadPoolExecutor = None
+            if ThreadPoolExecutor is not None:
+                with ThreadPoolExecutor(max_workers=1) as ex:
+                    future = ex.submit(self._fetch_rank_board, "hot-drama")
+                    try:
+                        items = future.result(timeout=8)
+                        if items:
+                            return {"list": items[:20]}
+                    except Exception:
+                        pass
+            return {"list": []}
         except Exception as e:
             print("红果首页推荐失败: %s" % e)
             return {"list": []}
 
     def categoryContent(self, tid, pg=1, filter=1, extend=None):
+        # 榜单一级分类：rank_all / rank_comic / rank_real / rank_ai
+        if tid and tid.startswith("rank_"):
+            cat_map = {
+                "rank_all": "全部",
+                "rank_comic": "漫剧",
+                "rank_real": "真人剧",
+                "rank_ai": "AI剧",
+            }
+            cat_name = cat_map.get(tid)
+            if not cat_name:
+                return {"list": [], "page": 1, "pagecount": 1, "limit": 0, "total": 0}
+            boards = self._RANK_CATS.get(cat_name, [])
+            
+            # 二级筛选：board 参数
+            extend = extend if isinstance(extend, dict) else {}
+            board_filter = str(extend.get("board") or "").strip()
+            
+            target_boards = boards if not board_filter else [b for b in boards if b[1] == board_filter]
+            
+            flat_list = []
+            try:
+                from concurrent.futures import ThreadPoolExecutor, as_completed
+            except ImportError:
+                ThreadPoolExecutor = None
+            if ThreadPoolExecutor is not None:
+                with ThreadPoolExecutor(max_workers=6) as ex:
+                    # 分类页强制刷新，不使用缓存
+                    futures = {ex.submit(self._fetch_rank_board, bid, True): name for name, bid in target_boards}
+                    for fut in as_completed(futures):
+                        board_name = futures[fut]
+                        try:
+                            items = fut.result(timeout=10)
+                            if items:
+                                for it in items:
+                                    it = dict(it)
+                                    it["vod_tag"] = board_name
+                                    flat_list.append(it)
+                        except Exception:
+                            pass
+            return {"list": flat_list, "page": 1, "pagecount": 1, "limit": len(flat_list), "total": len(flat_list)}
+
         try:
             page = int(pg) if pg else 1
         except (TypeError, ValueError):

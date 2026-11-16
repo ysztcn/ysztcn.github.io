@@ -11,11 +11,11 @@ from base.spider import Spider
 
 class Spider(Spider):
   siteKey = "4kvm"
-  baseUrl = "https://www.4kvm.top"
+  baseUrl = "https://www.4kvms.org/"
 
   _headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0",
-    "Referer": "https://www.4kvm.top/",
+    "Referer": "https://www.4kvms.org/",
   }
 
   _session = None
