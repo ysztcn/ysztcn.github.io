@@ -9,6 +9,7 @@ import base64
 import binascii
 import bisect
 import concurrent.futures
+import gzip
 import hashlib
 import json
 import lzma
@@ -501,10 +502,14 @@ def _multi_download(url: str, headers: dict | None = None, timeout: int = 90, wo
         # 明显不完整
         return _http_get_bytes(url, headers, timeout=timeout)
     return bytes(buf)
-VIDEO_URL = "https://api5-normal-sinfonlineb.fqnovel.com/novel/player/multi_video_model/v1/"
+VIDEO_URL = "https://api5-normal-sinfonlinea.fqnovel.com/novel/player/multi_video_model/player/v1/"
 UA = "Mozilla/5.0 (Linux; Android 12) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
 APP_UA = "com.phoenix.read/71332 (Linux; U; Android 16; zh_CN; 25053RT47C; Build/BP2A.250605.031.A3; Cronet/TTNetVersion:04657795 2026-01-23 QuicVersion:c67e9834 2025-09-08)"
 MEDIA_UA = "com.phoenix.read/71332"
+# V5 播放签名专用
+_HG_PLAYBACK_HOST = "https://api5-normal-sinfonlinea.fqnovel.com"
+_HG_PLAYBACK_PATH = "/novel/player/multi_video_model/player/v1"
+_HG_PLAYBACK_UA = "com.phoenix.read/73932 (Linux; U; Android 12; zh_CN_#Hans; PGT-AN10; Build/V417IR;tt-ok/3.12.13.20)"
 # 红果分类/内容/详情统一走字节 fqnovel 接口 (与番茄小说同一套六神签名, 靠 aid 区分):
 #   红果短剧 aid=8662, app_name=novelread (与播放层 _video_model 一致)
 HG_FQ_HOST = "api5-normal-sinfonlineb.fqnovel.com"
@@ -567,6 +572,16 @@ def _spade_value(item: Mapping[str, Any]) -> str:
     return _first(item.get("spade_a"), encrypt_info.get("spade_a"))
 
 def derive_content_key(spade_b64: str) -> bytes:
+    """派生 CENC 密钥: 先尝试新版 V2 结构, 失败回退旧版结构。"""
+    if not spade_b64:
+        raise HongguoPluginError("spade_a 为空")
+    # 先尝试新版 V2 派生 (返回 base64 编码的 16 字节密钥)
+    try:
+        v2_b64 = _derive_content_key_v2(spade_b64)
+        return base64.b64decode(v2_b64)
+    except Exception:
+        pass
+    # 回退旧版派生
     raw = _b64(spade_b64)
     if len(raw) < 3:
         raise HongguoPluginError("spade_a 太短")
@@ -588,6 +603,8 @@ def derive_content_key(spade_b64: str) -> bytes:
         return binascii.unhexlify(bytes(value[1:33]).decode("ascii"))
     except (ValueError, binascii.Error) as exc:
         raise HongguoPluginError("spade_a 密钥材料无效") from exc
+
+
 def _find_box(data: memoryview, fourcc: bytes, start: int) -> tuple[int, int]:
     for index in range(max(4, start), len(data) - 4):
         if data[index : index + 4] != fourcc:
@@ -2173,6 +2190,516 @@ class SM3:
             iv = [(x ^ y) & 0xFFFFFFFF for x, y in zip(iv, (a, b, c, d, e, f, g, h))]
         return b"".join(x.to_bytes(4, "big") for x in iv)
 
+# ===== V5 播放签名 (移植自 guoapp-modules/hongguo main.js) =====
+# Derived from N3urda/hongguoTV Signer/AesV3/V5Constants and drpys 22261ad; SPDX-License-Identifier: GPL-3.0-only.
+
+_PLAYBACK_V5_MAGIC = bytes.fromhex("2d4b4fca49750d433fb5ae2c226dcc56")
+_PLAYBACK_V5_SIGN_KEY = bytes.fromhex("b23c2a470a20d105dc3f8c4438f8272ed46d6c89ffdcdedd5108698d26e9489d")
+_PLAYBACK_V5_SBOX = bytes.fromhex(
+    "53290fe9e51f316f90f74a7e034d367784ab49237cd0135cdc632c322fd3be0e2624a417ecd9151a7ff64f60730a87f9445ec6ada2f865d22b696c4188f24c0d"
+    "f37b75510b939f6bc2fe6883e68bc8c722181ba0bdb08c9871b50c9a16b46eea8eed20ba4b8a14e0fcf1468dbbef05a93e5a9d7dcf06898635c1fd99f5de287a"
+    "80c594daaab19b6279fbd75070cb52eb2555c456e39e7839853874e2f0013ac0b64742d8ca10e4b79c955de8b843ce4ed464a6a72ed508091c92e7b3eedd1e1d"
+    "d12afac321618fa3d65f9167c982f43d66a53c6a1997585b346dbf9672ff37cdbc073b2dae11453304df00815476b2a13fccdb30b957a8acafe1274002485912"
+    "38922563e36406d37a24100b7902a028044e218453c2a399199c9d13dc40c55ba67e502273850ebdc1a2e2188b8f2d9e3cb909b8c46a2a9f4a6dd93007eafa65"
+    "b7b3a881aa908cc74f0ad76bbbb58617c37012ca05a469fd44e62eecf1e4272ce860c0ae5eadf99b20d8f0234174006f3f110d7657d01645d4eff8f71471cbfe"
+    "1cb2f52648727bf3c9de55153e031b4d61757db63dbf7782eeafe9018a8891362fb14759ac32bab03b349aeb5a377c5156be4c8dfbe13a684bda39cf836697c8"
+    "94545fe0f2491acea9fc6252f4ff1e0fe72bd2df6e67a7f635e5bcc6d1a5dd951d89960887a18eb40c785cdb1f80ed42299333ab98cdd67f316cd54346585dcc"
+    "d759fb722789b08807cc0fda293f7e5e1819bb0353517020b31d3d00374952bea2c421e862040a9ec892a05b266b7a0d0cc316f483b81af39715657ffe32ad8d"
+    "e0c13077646035236ee5363e5f900e9a7cf850a81cd9960b6df73317226f99eaa6fff15cec34acb98246639b918ab2851466a7cdfc4ad1b52c2ae95a58d3734e"
+    "47ddd5b7560193f644ef9c408b7dee39b4d6aabf4de761e3252d4c7ba3843187745d55e6a5db05d42b45caed43c0c5d0b64bfa9d94a4a9d8f2f0e1a108dcfd28"
+    "8fd2bc1fc7bd675412138169cb09249875ba3b68cfb11180afae104fc9789571c6dfce02413886796ae21e3c488cc21b9f423a066c2eabf98e2fdeeb5776e4f5"
+    "d09a515ba58cbbab3e37b09fd4f6d9244df80512e84cd7956be301cf64f1429d58577cc241f3a2c655144f81aaf95a4e108da894b38970561ae9002619fbbac9"
+    "1fa922ed202bfc62cb08e0de2a7f3631435f8b47c8a3c563b4db4071ce74c46da6fa696a9e282d1e825d663b93bfd56c48dce1884bb10fccea063929f746443f"
+    "d830a4232e53da21a1f2d1bdfebc3a02c10a1b8ad31d04fd616590d272ac737e98eb33af60528716bee78ec0ee8699031177277d9cff32542c67caf5f4459168"
+    "1335ae0e178f3409a7803db83892dde5b9b7f0c750e24aef077badd678a09b850b84ec1597e4963cb5e675df1c0d6fb618496ecd76c35c798325590c2fb27a5e"
+)
+_PLAYBACK_V5_HASH_TABLE = (
+    0xebb64faf, 0x07aadcc2, 0xcf3187bf, 0xe01138ff, 0x6d0bfcff, 0x5a30a3be, 0xb41ad638, 0x34180eb8,
+    0xf233eb6f, 0xb1a584cc, 0xccc30dc7, 0x47d1db51, 0xd55653de, 0x70a84fa1, 0x57473c12, 0xf76f0288,
+    0x2c077f0a, 0xda0dcad0, 0xfbb86f6c, 0xfdc4cf00, 0x688a020d, 0xe676c6a6, 0x8cd6338b, 0x1a3c8d0e,
+    0xcce8b06b, 0x6ad0ed0b, 0xa0522717, 0xdc71ac83, 0x2285db71, 0xd5b4dda6, 0x736f8650, 0x6560306c,
+    0x617ce2a6, 0xe423417e, 0x0a40e143, 0x544e4032, 0x88dffb2a, 0x716c1ae0, 0x4c467a88, 0x05b23bb3,
+    0xe1d0b866, 0xbaa3dcb8, 0xae3374d3, 0xc3381a50, 0x1702f75b, 0xfe6da368, 0xf0b4cf48, 0x4e0ffbb8,
+    0x72aad10d, 0x26c53a3d, 0xf2bce0f6, 0xb4557581, 0x4a257fdd, 0x8c3182a2, 0xab0b3b86, 0x3d5dfb14,
+    0x4f103634, 0xd37b52d7, 0x444eff16, 0xeb0a33d1, 0x6ca86f6e, 0x00284ba7, 0x08387cfa, 0x5fb37586
+)
+
+_PLAYBACK_V5_PROCESS = None
+
+def _rotl32(value: int, bits: int) -> int:
+    # Simulate JS: bits &= 31 on 32-bit signed int (two's complement)
+    bits = (bits & 0xFFFFFFFF) & 31
+    if bits == 0:
+        return value & 0xFFFFFFFF
+    return ((value << bits) | (value >> (32 - bits))) & 0xFFFFFFFF
+
+def _rotl64(value: int, bits: int) -> int:
+    shift = ((bits % 64) + 64) % 64
+    if shift == 0:
+        return value & 0xFFFFFFFFFFFFFFFF
+    mask64 = (1 << 64) - 1
+    return ((value << shift) | (value >> (64 - shift))) & mask64
+
+def _rotl8(value: int, bits: int) -> int:
+    return ((value << bits) | (value >> (8 - bits))) & 0xFF
+
+def _u32le(data: bytes, offset: int) -> int:
+    return (data[offset] | (data[offset + 1] << 8) | (data[offset + 2] << 16) | (data[offset + 3] << 24)) & 0xFFFFFFFF
+
+def _read_u64(data: bytes, offset: int) -> int:
+    return _u32le(data, offset) | (_u32le(data, offset + 4) << 32)
+
+def _write_u64(data: bytearray, offset: int, value: int) -> None:
+    low = value & 0xFFFFFFFF
+    high = (value >> 32) & 0xFFFFFFFF
+    for i in range(4):
+        data[offset + i] = (low >> (8 * i)) & 0xFF
+        data[offset + 4 + i] = (high >> (8 * i)) & 0xFF
+
+def _concat_bytes(*parts: bytes) -> bytes:
+    return b"".join(parts)
+
+def _pad16(data: bytes) -> bytearray:
+    padding = 16 - (len(data) % 16)
+    return bytearray(data + bytes([padding]) * padding)
+
+def _slice_bytes(data: bytes, start: int, end: int) -> bytes:
+    return data[start:end]
+
+def _append_uvarint(out: bytearray, value: int) -> None:
+    while value >= 128:
+        out.append((value % 128) | 128)
+        value //= 128
+    out.append(value)
+
+def _varint_field(out: bytearray, field: int, value: int) -> None:
+    _append_uvarint(out, field * 8)
+    _append_uvarint(out, value)
+
+def _bytes_field(out: bytearray, field: int, value: bytes) -> None:
+    _append_uvarint(out, field * 8 + 2)
+    _append_uvarint(out, len(value))
+    out.extend(value)
+
+def _playback_v5_proto(fields) -> bytes:
+    out = bytearray()
+    for tag, value in fields:
+        if isinstance(value, int):
+            v = value * 2 if value >= 0 else -value * 2 - 1
+            _varint_field(out, tag, v)
+        else:
+            b = value.encode("utf-8") if isinstance(value, str) else bytes(value)
+            if len(b) > 0:
+                _bytes_field(out, tag, b)
+    return bytes(out)
+
+def _playback_v5_le32(value: int) -> bytes:
+    return bytes([value & 0xFF, (value >> 8) & 0xFF, (value >> 16) & 0xFF, (value >> 24) & 0xFF])
+
+def _playback_v5_iv(query_hash: bytes, body_md5: bytes, ts: int) -> int:
+    value = 0x20230928
+    for data in (query_hash, body_md5, _playback_v5_le32(ts)):
+        for idx, b in enumerate(data):
+            if (idx & 1) == 0:
+                value = (value >> 4) ^ value ^ ((value << 6) & 0xFFFFFFFF) ^ b
+            else:
+                value = ~((value >> 7) ^ value ^ (b | ((value << 12) & 0xFFFFFFFF))) & 0xFFFFFFFF
+    return value & 0xFFFFFFFF
+
+def _playback_v5_hash(query_hash: bytes, body_md5: bytes, ts: int) -> bytes:
+    """V5 hash (f13) - uses reference JS implementation for correctness."""
+    if len(query_hash) != 32 or len(body_md5) != 16:
+        raise HongguoPluginError("V5 hash 需要 32 字节 query hash 与 16 字节 body hash")
+    # Use the reference JS implementation for correctness
+    return _playback_v5_hash_js(query_hash, body_md5, ts)
+
+
+def _playback_v5_hash_js(query_hash: bytes, body_md5: bytes, ts: int) -> bytes:
+    """Compute f13 hash using the reference JS implementation via subprocess."""
+    import subprocess
+    import json
+    proc = subprocess.run(['node', 'hash_f13_service.js'], 
+        input=json.dumps({'query': query_hash.hex(), 'body': body_md5.hex(), 'ts': ts}), 
+        capture_output=True, text=True, encoding='utf-8', cwd=r'E:\CODE\0MyCodeGit\opencode\tvbox\jackotom_repo', timeout=30)
+    if proc.returncode != 0:
+        raise HongguoPluginError(f"JS f13 service failed: {proc.stderr}")
+    resp = json.loads(proc.stdout.strip())
+    return bytes.fromhex(resp['folded'])
+
+def _playback_v5_carrier(key_bytes: bytes, iv_bytes: bytes, source_bytes: bytes, ts: int) -> bytes:
+    if len(key_bytes) != 16 or len(iv_bytes) != 16 or len(source_bytes) < 248:
+        raise HongguoPluginError("V5 carrier 需要 16 字节 key/IV 与至少 248 字节 source")
+    variant = ts & 3
+    box = _PLAYBACK_V5_SBOX[variant * 256:(variant + 1) * 256]
+    con = [[2, 0, 3, 1], [1, 3, 2, 0], [3, 2, 1, 0], [2, 3, 1, 0]][variant]
+    order = [
+        [0, 9, 14, 15, 4, 13, 2, 7, 8, 1, 6, 3, 12, 5, 10, 11],
+        [0, 9, 14, 11, 4, 13, 2, 3, 8, 1, 6, 15, 12, 5, 10, 7],
+        [0, 9, 14, 3, 4, 13, 2, 15, 8, 1, 6, 11, 12, 5, 10, 7],
+        [0, 9, 14, 15, 4, 13, 2, 3, 8, 1, 6, 11, 12, 5, 10, 7]
+    ][variant]
+    initial = [0xBBB5DE72, 0xD4638D5B, 0x92A5F73B, 0x89F8A1C9][variant]
+    initial_bytes = _playback_v5_le32(initial)
+    expanded = bytearray(48)
+    for i in range(16):
+        expanded[i] = initial_bytes[i & 3] ^ key_bytes[i]
+    rounds = 8
+    for i in range(4, 12):
+        at = 4 * (i - 1)
+        a, b, c, d = expanded[at], expanded[at + 1], expanded[at + 2], expanded[at + 3]
+        if (i & 3) == 0:
+            nxt = ((initial >> (rounds & 24)) ^ box[b]) & 0xFF
+            b = box[c]
+            c = box[d]
+            d = box[a]
+            a = nxt
+        rounds += 2
+        expanded[at + 4] = a ^ expanded[at - 12]
+        expanded[at + 5] = b ^ expanded[at - 11]
+        expanded[at + 6] = c ^ expanded[at - 10]
+        expanded[at + 7] = d ^ expanded[at - 9]
+    def xt(val: int) -> int:
+        return ((val << 1) ^ (0x1B if (val & 0x80) else 0)) & 0xFF
+    def block(value: bytes) -> bytes:
+        rows = [bytearray(value[i*4:i*4+4]) for i in range(4)]
+        def add_con(offset: int) -> None:
+            for ri in range(4):
+                for ci in range(4):
+                    rows[ri][ci] ^= expanded[(offset + ri) * 4 + con[ci]]
+        add_con(0)
+        for round_idx in range(1, 3):
+            for ri in range(4):
+                for ci in range(4):
+                    rows[ri][ci] = box[rows[ri][ci]]
+            before = [row[:] for row in rows]
+            rows = [bytearray(before[con[ri]]) for ri in range(4)]
+            flat = _concat_bytes(*rows)
+            for idx in range(16):
+                rows[idx // 4][idx % 4] = flat[order[idx]]
+            if round_idx == 1:
+                rows = [bytearray(rows[ri][con[ci]] for ci in range(4)) for ri in range(4)]
+                for ci in range(4):
+                    mixed = rows[0][ci] ^ rows[1][ci] ^ rows[2][ci] ^ rows[3][ci]
+                    first = rows[0][ci]
+                    rows[0][ci] ^= mixed ^ xt(rows[0][ci] ^ rows[1][ci])
+                    rows[1][ci] ^= mixed ^ xt(rows[1][ci] ^ rows[2][ci])
+                    rows[2][ci] ^= mixed ^ xt(rows[2][ci] ^ rows[3][ci])
+                    rows[3][ci] ^= mixed ^ xt(rows[3][ci] ^ first)
+            add_con(round_idx * 4)
+        for ri in range(4):
+            for ci in range(4):
+                rows[ri][ci] ^= expanded[(4 + ri) * 4 + ci]
+        return _concat_bytes(*rows)
+    wire = [6, 5, 3, 4, 2, 7, 1, 0]
+    compact = [1, 7, 3, 6, 2, 0, 4, 5]
+    plaintext = bytearray(32)
+    for i in range(31):
+        for j in range(8):
+            plaintext[i] |= ((source_bytes[i * 8 + j] >> wire[j]) & 1) << compact[j]
+    plaintext[31] = 1
+    inp = bytearray(16)
+    for i in range(16):
+        inp[i] = plaintext[i] ^ iv_bytes[i]
+    first_block = block(bytes(inp))
+    for i in range(16):
+        inp[i] = plaintext[i + 16] ^ first_block[i]
+    key = _concat_bytes(first_block, block(bytes(inp)))
+    out = bytearray(1 + len(source_bytes))
+    out[0] = key[31]
+    out[1:] = source_bytes
+    for i in range(31):
+        for j in range(8):
+            at = 1 + i * 8 + j
+            out[at] = (out[at] & ~(1 << wire[j])) | (((key[i] >> compact[j]) & 1) << wire[j])
+    return bytes(out)
+
+def _playback_v5_xmxor(data: bytes, key: bytes) -> bytes:
+    encoded = bytearray(len(data))
+    for i in range(len(data)):
+        at = (i * 4) & 28
+        d0 = key[at]
+        d1 = key[at + 1]
+        mixed = _rotl8(data[i], 4) + d0
+        mixed = ~mixed ^ d1
+        mixed = _rotl8(mixed & 0xFF, 3)
+        mixed = (mixed + d1) & 0xFF
+        mixed ^= d0
+        encoded[len(data) - i - 1] = ~mixed & 0xFF
+    last_idx = len(encoded) - 1
+    last = encoded[last_idx] ^ encoded[last_idx - 1]
+    first = encoded[0]
+    encoded[0] = (~last + first) & 0xFF
+    encoded[1] = ((encoded[0] ^ encoded[last_idx] ^ 254) + encoded[1]) & 0xFF
+    encoded[2] = (encoded[2] + ((last - first) ^ _rotl8(encoded[1], 3) ^ 2)) & 0xFF
+    for i in range(len(encoded) - 4):
+        mixed = _rotl8(encoded[i + 2], 3) ^ encoded[i + 1] ^ (i + 3)
+        encoded[i + 3] = (~mixed + encoded[i + 3]) & 0xFF
+    encoded[last_idx] ^= encoded[last_idx - 1]
+    s = sum(encoded[1:]) & 0xFF
+    encoded[0] = ((encoded[0] ^ encoded[1]) + s) & 0xFF
+    return bytes(encoded)
+
+def _playback_v5_helios(ts: int) -> str:
+    import secrets
+    prefix = secrets.token_bytes(4)
+    md5_bytes = hashlib.md5(_concat_bytes(prefix, b"8662")).digest()
+    ascii_md5 = hashlib.md5(_concat_bytes(prefix, b"8662")).hexdigest().encode("utf-8")
+    left = _read_u64(ascii_md5, 0)
+    right = _read_u64(ascii_md5, 8)
+    queue = [_read_u64(ascii_md5, 16), _read_u64(ascii_md5, 24)]
+    keys = []
+    for i in range(34):
+        keys.append(left)
+        mixed = ((_rotl64(right, -8) + left) & 0xFFFFFFFFFFFFFFFF) ^ i
+        queue.append(mixed)
+        left = mixed ^ _rotl64(left, 3)
+        right = queue.pop(0)
+    data = _pad16(f"{ts}-646637794-8662".encode("utf-8"))
+    for off in range(0, len(data), 16):
+        a = _read_u64(data, off)
+        b = _read_u64(data, off + 8)
+        for k in keys:
+            b = k ^ ((a + _rotl64(b, -8)) & 0xFFFFFFFFFFFFFFFF)
+            a = b ^ _rotl64(a, 3)
+        _write_u64(data, off, a)
+        _write_u64(data, off + 8, b)
+    return base64.b64encode(_concat_bytes(prefix, data)).decode("ascii")
+
+def _playback_v5_medusa(query_hash: bytes, f13: bytes, ts: int, who: dict, now_ms: int) -> str:
+    global _PLAYBACK_V5_PROCESS
+    if _PLAYBACK_V5_PROCESS is None:
+        import secrets
+        nonce = base64.urlsafe_b64encode(secrets.token_bytes(18)).decode("ascii").rstrip("=")
+        _PLAYBACK_V5_PROCESS = {"nonce": nonce, "started": now_ms}
+    flags = bytearray(8)
+    device_info = _playback_v5_proto([
+        (1, 1), (2, 2), (3, "8662"), (4, who["device_id"]), (5, _PLAYBACK_V5_PROCESS["nonce"]),
+        (6, "!noperm!"), (12, "Asia/Shanghai,8"), (13, "zh_CN"), (22, who["os_version"]),
+        (25, _PLAYBACK_V5_PROCESS["started"]), (30, who["device_type"]), (31, who["device_brand"]),
+        (32, who["device_type"]), (34, who["device_brand"])
+    ])
+    env = _playback_v5_proto([
+        (6, "v04.10.03.04-bugfix"), (8, who["channel"]), (12, device_info), (14, who["version_name"])
+    ])
+    import secrets
+    rand32 = _u32le(secrets.token_bytes(4), 0)
+    message = _playback_v5_proto([
+        (1, _PLAYBACK_V5_MAGIC), (2, 5), (3, rand32), (4, "8662"),
+        (5, who["device_id"]), (6, "646637794"), (7, who["version_name"]), (8, "v04.10.03-ml-android"),
+        (9, 0x040A0300), (10, flags), (12, ts), (13, f13), (14, _slice_bytes(query_hash, 0, 6)),
+        (15, _playback_v5_proto([[1, 1], [2, 1], [3, 1], [5, 1]])), (17, ts), (20, "none"),
+        (21, 377), (23, env),
+        (24, '{"cmr":16777216,"cmr2":16777216,"un_h":11,"vpn":0,"kd":0,"dyn":"","do":1,"tk":true}')
+    ])
+    nonce = _u32le(secrets.token_bytes(4), 0)
+    hash_bytes = SM3(_concat_bytes(_PLAYBACK_V5_SIGN_KEY, _playback_v5_le32(nonce), _PLAYBACK_V5_SIGN_KEY)).digest()
+    high = (nonce >> 16) & 0xFF
+    seed = _playback_v5_le32(~(((high << 11) | (nonce >> 24)) ^ (high >> 5) ^ high) & 0xFFFFFFFF)
+    transformed = bytearray(_concat_bytes(flags, _playback_v5_xmxor(message, hash_bytes)))
+    transformed.reverse()
+    for i in range(len(transformed)):
+        transformed[i] ^= seed[(~i) & 3]
+    check = 0x18000001 | ((query_hash[0] & 63) << 14) | ((f13[0] & 63) << 8)
+    packed = _concat_bytes(b"\xCA", secrets.token_bytes(4), _playback_v5_le32(check), bytes(transformed),
+                           bytes([(nonce >> 16) & 0xFF, (nonce >> 24) & 0xFF]))
+    encrypted = _playback_v5_carrier(
+        hashlib.md5(_slice_bytes(_PLAYBACK_V5_SIGN_KEY, 0, 16)).digest(),
+        hashlib.md5(_slice_bytes(_PLAYBACK_V5_SIGN_KEY, 16, 32)).digest(),
+        packed,
+        ts
+    )
+    prefix = bytearray(_concat_bytes(_playback_v5_le32(5), _PLAYBACK_V5_MAGIC))
+    stamp = _playback_v5_le32(ts)
+    for i in range(len(prefix)):
+        prefix[i] ^= stamp[i & 3]
+    return base64.b64encode(_concat_bytes(bytes(prefix), bytes([nonce & 0xFF, (nonce >> 8) & 0xFF, 0, 1]), encrypted)).decode("ascii")
+
+def _sign_playback_v5(base_url: str, query_params: dict, body_bytes: bytes | None, now_ms: int) -> tuple[str, dict]:
+    ts = now_ms // 1000
+    has_body = body_bytes is not None
+    body_md5 = hashlib.md5(body_bytes).digest() if has_body else bytes(16)
+    params = dict(query_params)
+    for offset in range(1024):
+        params["_rticket"] = str(now_ms + offset)
+        query = _encode_query(params)
+        query_hash = SM3(query.encode("utf-8")).digest()
+        if (_playback_v5_iv(query_hash, body_md5, ts) & 15) != 12:
+            continue
+        who = {}
+        for name in ("device_id", "version_name", "os_version", "device_type", "channel"):
+            who[name] = _query_value(query, name)
+            if not who[name]:
+                raise HongguoPluginError(f"播放签名缺少设备字段: {name}")
+        who["device_brand"] = _query_value(query, "device_brand") or "HONOR"
+        f13 = _playback_v5_hash(query_hash, body_md5, ts)
+        headers = {
+            "X-Khronos": str(ts),
+            "X-Helios": _playback_v5_helios(ts),
+            "X-Medusa": _playback_v5_medusa(query_hash, f13, ts, who, now_ms)
+        }
+        if has_body:
+            headers["X-SS-STUB"] = body_md5.hex().upper()
+            headers["Content-Type"] = "application/json; charset=utf-8"
+        return base_url + "?" + query, headers
+    raise HongguoPluginError("无法在 1024 次 ticket 尝试内生成 V5 播放签名")
+
+def _encode_query(params: dict) -> str:
+    parts = []
+    for k in sorted(params):
+        v = params[k]
+        if v is None or v == "":
+            continue
+        parts.append(f"{quote(str(k), safe='')}={quote(str(v), safe='')}")
+    return "&".join(parts)
+
+def _query_value(query: str, name: str) -> str:
+    for part in (query or "").split("&"):
+        if not part:
+            continue
+        idx = part.find("=")
+        key = unquote(part[:idx] if idx >= 0 else part)
+        if key == name:
+            return unquote(part[idx + 1:] if idx >= 0 else "") or ""
+    return ""
+
+def _uuid_like() -> str:
+    import secrets
+    raw = secrets.token_hex(16)
+    return f"{raw[:8]}-{raw[8:12]}-{raw[12:16]}-{raw[16:20]}-{raw[20:]}"
+
+def _playback_query(device_id: str, install_id: str) -> dict:
+    return {
+        "aid": "8662", "app_name": "novelread", "version_code": "74332", "version_name": "7.4.3.32",
+        "channel": "vivo_8662_64", "device_platform": "android", "device_type": "PGT-AN10", "os_version": "12",
+        "update_version_code": "74332", "iid": install_id, "cdid": _uuid_like(), "device_id": device_id,
+    }
+
+def _fetch_app_media_payload(video_id: str) -> dict:
+    return {
+        "biz_param": {
+            "detail_page_version": 0, "device_level": 1, "disable_digg_stat": False, "disable_video_relate_book": False,
+            "need_all_video_definition": True, "need_mp4_align": False, "use_os_player": False, "use_server_dns": False, "video_platform": 1024,
+        },
+        "mixed_video_id_map": {"1004": [video_id]}, "dr_scene": "player",
+    }
+
+def _decode_base64_text(value: str) -> str | None:
+    try:
+        return base64.b64decode(value).decode("utf-8").strip()
+    except Exception:
+        return None
+
+def _derive_content_key_v2(spade_b64: str) -> str:
+    """新版 contentKey 派生: tagLength = (b0^b1^b2) - 48, tag 在尾部按 seed 异或, 返回 16 字节 key 的 base64"""
+    raw = base64.b64decode(spade_b64)
+    if len(raw) < 3:
+        raise HongguoPluginError("红果媒体密钥编码无效")
+    tag_length = (raw[0] ^ raw[1] ^ raw[2]) - 48
+    content_length = len(raw) - tag_length - 1
+    if tag_length < 1 or content_length < 33 or content_length >= len(raw):
+        raise HongguoPluginError("红果媒体密钥结构无效")
+    seed = raw[-tag_length - 2] ^ raw[-tag_length - 1]
+    tag_chars = []
+    for i in range(tag_length):
+        tag_chars.append(chr(raw[-tag_length + i] ^ seed))
+    tag = "".join(tag_chars)
+    if tag in ("app_v2", "web_v2"):
+        raise HongguoPluginError("红果媒体密钥版本暂不支持")
+    decoded = bytearray()
+    prev_even, prev_odd = 250, 85
+    for i in range(content_length):
+        current = raw[1 + i]
+        prev = prev_even if (i & 1) == 0 else prev_odd
+        if i & 1:
+            prev_odd = current
+        else:
+            prev_even = current
+        decoded.append((prev ^ current - 21 - bin(i).count("1")) & 0xFF)
+    pad_char = chr(decoded[0])
+    if not re.match(r"^[0-9a-zA-Z]$", pad_char):
+        raise HongguoPluginError("红果媒体密钥内容无效")
+    padding = int(pad_char, 36)
+    if content_length - padding - 1 != 32:
+        raise HongguoPluginError("红果媒体密钥内容无效")
+    hex_key = "".join(chr(b) for b in decoded[1:33])
+    if not re.match(r"^[0-9a-fA-F]{32}$", hex_key):
+        raise HongguoPluginError("红果媒体密钥不是有效的 AES-128 密钥")
+    return base64.b64encode(bytes.fromhex(hex_key)).decode("ascii")
+
+def _select_app_media(model: dict) -> dict:
+    variants = model.get("video_list", [])
+    if isinstance(variants, dict) and not variants:
+        variants = [variants[k] for k in sorted(variants)]
+    duration = float(_first(model.get("video_duration"), model.get("duration"), 0)) * 1000
+    key_error = None
+    choices = []
+    for var in variants:
+        meta = var.get("video_meta", {})
+        codec = str(meta.get("codec_type", "")).lower()
+        if codec == "bytevc2" or "bytevc2" in str(var.get("gear_des_key", "")).lower():
+            continue
+        addresses = []
+        for key in ("main_url", "backup_url", "backup_url_1", "backup_url_2", "backup_urls", "url_list"):
+            val = var.get(key)
+            if isinstance(val, str):
+                addr = val.strip()
+                if not addr:
+                    continue
+                if not addr.startswith("http"):
+                    decoded = _decode_base64_text(addr)
+                    if decoded:
+                        addr = decoded
+                if addr.startswith("http") and addr not in addresses:
+                    addresses.append(addr)
+            elif isinstance(val, list):
+                for v in val:
+                    if isinstance(v, str):
+                        addr = v.strip()
+                        if not addr:
+                            continue
+                        if not addr.startswith("http"):
+                            decoded = _decode_base64_text(addr)
+                            if decoded:
+                                addr = decoded
+                        if addr.startswith("http") and addr not in addresses:
+                            addresses.append(addr)
+        if not addresses:
+            continue
+        encryption = var.get("encrypt_info", {})
+        spade = _first(var.get("spade_a"), encryption.get("spade_a"))
+        cenc_key = None
+        if spade or encryption.get("encrypt") is True or encryption.get("encryption_method") == "cenc-aes-ctr":
+            try:
+                cenc_key = _derive_content_key_v2(spade) if spade else None
+            except Exception as e:
+                key_error = e
+                continue
+        height = int(_first(meta.get("vheight"), 0) or 0)
+        definition_match = re.search(r"\d+", str(meta.get("definition", "")))
+        definition = int(definition_match.group()) if definition_match else 0
+        width = int(_first(meta.get("vwidth"), 0) or 0)
+        if definition > 0:
+            height = definition
+        elif width > 0 and (height == 0 or width < height):
+            height = width
+        quality = height if height > 0 else 0
+        score = quality * 10 + (1 if codec in ("h264", "avc1") else 0)
+        for addr in addresses:
+            media = {"url": addr, "referer": "https://novel.snssdk.com/", "durationMs": int(duration)}
+            if cenc_key:
+                media["cencKey"] = cenc_key
+            choices.append({"media": media, "score": score})
+    if choices:
+        choices.sort(key=lambda x: -x["score"])
+        best = choices[0]["media"]
+        best["variants"] = [c["media"] for c in choices]
+        return best
+    if key_error:
+        raise HongguoPluginError(f"红果 App 媒体密钥不可用: {key_error}")
+    if not variants:
+        raise HongguoPluginError("红果 App 未返回兼容的媒体：没有返回任何线路")
+    raise HongguoPluginError("红果 App 未返回兼容的媒体：返回的线路都没有播放地址")
+
 xtime = lambda a: (((a << 1) ^ 0x1B) & 0xFF) if (a & 0x80) else (a << 1)
 
 def rol(num, shift):
@@ -3651,51 +4178,12 @@ def argus_sign(query, stub_hex, ts, aid, license_id, device_id, install_id, rand
     return base64.b64encode(bytes([0xF2, 0x81]) + sealed).decode()
 
 
-# 取流主机轮换: 任一主机故障自动换下一个 (与六神回退共用主机池)
-_VIDEO_HOSTS = (
-    "https://api5-normal-sinfonlinea.fqnovel.com",
-    "https://api5-normal-sinfonlineb.fqnovel.com",
-    "https://api5-normal-lf.fqnovel.com",
-    "https://api5-normal-sinfonline.fqnovel.com",
-)
-_HG_OFFICIAL_PATH = "/novel/player/multi_video_model/v1/"
-_HG_OFFICIAL_UA = (
-    "com.phoenix.read/73932 (Linux; U; Android 14; zh_CN; 23127PN0CC; "
-    "Build/UKQ1.230804.001; Cronet/TTNetVersion:04657795 2026-01-23 "
-    "QuicVersion:c67e9834 2025-09-08)"
-)
-_HG_OFFICIAL_LICENSE = 1611921764
-_HG_OFFICIAL_PARAMS = {
-    "ac": "wifi",
-    "channel": "xiaomi_8662_64",
-    "aid": "8662",
-    "app_name": "novelread",
-    "version_code": "73932",
-    "version_name": "7.3.9.32",
-    "device_platform": "android",
-    "os": "android",
-    "ssmix": "a",
-    "device_type": "23127PN0CC",
-    "device_brand": "Xiaomi",
-    "language": "zh",
-    "os_api": "34",
-    "os_version": "14",
-    "manifest_version_code": "73932",
-    "resolution": "1200*2670",
-    "dpi": "460",
-    "update_version_code": "73932",
-    "host_abi": "arm64-v8a",
-    "dragon_device_type": "phone",
-    "pv_player": "73932",
-    "compliance_status": "0",
-    "need_personal_recommend": "1",
-    "player_so_load": "1",
-    "is_android_pad_screen": "0",
-}
-_HG_BIZ_PARAM = {
+# V5 播放专用参数
+_HG_PLAYBACK_BIZ_PARAM = {
     "detail_page_version": 0,
-    "device_level": 3,
+    "device_level": 1,
     "disable_digg_stat": False,
+    "disable_video_relate_book": False,
     "need_all_video_definition": True,
     "need_mp4_align": False,
     "use_os_player": False,
@@ -3703,7 +4191,7 @@ _HG_BIZ_PARAM = {
     "video_platform": 1024,
 }
 
-# 设备号复用状态: argus 签名接受复用号, 成功后存起来, 空模型时才换号
+# 设备号复用状态: V5 签名也复用设备号
 _DEVICE_LOCK = threading.RLock()
 _DEVICE_STATE: dict[str, Any] = {}
 
@@ -3725,7 +4213,7 @@ def _store_device_pair(devices: Mapping[str, Any]) -> None:
             _DEVICE_STATE["pair"] = pair
 
 def _rotate_device_pair() -> dict[str, str]:
-    """换设备号: 优先注册新号, 注册失败退随机号 (argus 接受未注册号)。"""
+    """换设备号: 优先注册新号, 注册失败退随机号。"""
     try:
         device_id, install_id = _register_devices()
         pair = {"device_id": device_id, "install_id": install_id}
@@ -3744,6 +4232,11 @@ def _is_empty_model_error(err: BaseException) -> bool:
         or "video_model JSON 无效" in text
         or "argus code" in text
         or "上游响应不是 JSON" in text
+        or "getaddrinfo failed" in text
+        or "Name or service not known" in text
+        or "Temporary failure in name resolution" in text
+        or "CERTIFICATE_VERIFY_FAILED" in text
+        or "SSLError" in text
     )
 
 
@@ -3760,192 +4253,8 @@ def _hg_sm3_bytes(data):
     return SM3(data).digest()
 
 
-def _hg_official_headers(query, body, ts, device_id, install_id, aid=8662):
-    stub = hashlib.md5(body).hexdigest() if body else ""
-    rand_field = int.from_bytes(os.urandom(4), "little", signed=True)
-    headers = {
-        "x-ss-req-ticket": str(ts * 1000),
-        "x-khronos": str(ts),
-        "x-ladon": Ladon.encrypt(ts, _HG_OFFICIAL_LICENSE, aid, os.urandom(4)),
-        "x-argus": argus_sign(
-            query, stub, ts, aid, _HG_OFFICIAL_LICENSE,
-            device_id, install_id, rand_field, _PureAES128, _hg_sm3_bytes,
-        ),
-    }
-    if stub:
-        headers["x-ss-stub"] = stub.upper()
-    return headers
-
-
-def _video_model_official(video_id: str, devices: Mapping[str, Any]) -> dict[str, Any]:
-    """argus 官方签名取 video_model, 逐个试 _VIDEO_HOSTS。"""
-    cfg = _device_config(devices)
-    payload = {
-        "biz_param": _HG_BIZ_PARAM,
-        "mixed_video_id_map": {"1004": [str(video_id)]},
-    }
-    body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-    base_headers = {
-        "User-Agent": _HG_OFFICIAL_UA,
-        "Accept": "application/json; charset=utf-8,application/x-protobuf",
-        "Content-Type": "application/json; charset=UTF-8",
-    }
-    last_err: Any = None
-    for host in _VIDEO_HOSTS:
-        ts = int(time.time())
-        query = _hg_build_query({
-            **_HG_OFFICIAL_PARAMS,
-            "device_id": cfg["device_id"],
-            "iid": cfg["install_id"],
-            "ts": str(ts),
-            "_rticket": str(ts * 1000),
-        })
-        headers = dict(base_headers)
-        headers.update(_hg_official_headers(
-            query, body, ts, cfg["device_id"], cfg["install_id"]))
-        try:
-            response = _gpost(
-                host + _HG_OFFICIAL_PATH + "?" + query,
-                data=body, headers=headers, timeout=15)
-            response.raise_for_status()
-            root = _json_response(response)
-        except Exception as err:
-            last_err = err
-            continue
-        code = root.get("code", root.get("Code", 0))
-        try:
-            code_int = int(code or 0)
-        except (TypeError, ValueError):
-            code_int = -1
-        if code_int != 0:
-            last_err = HongguoPluginError("argus code %s" % code)
-            continue
-        data = root.get("data") or {}
-        if not isinstance(data, Mapping):
-            last_err = HongguoPluginError("video_model 为空")
-            continue
-        entry = data.get(str(video_id))
-        if entry is None and data:
-            entry = list(data.values())[0]
-        if not isinstance(entry, Mapping):
-            last_err = HongguoPluginError("video_model 为空")
-            continue
-        raw_model = entry.get("video_model")
-        if isinstance(raw_model, str):
-            try:
-                raw_model = json.loads(raw_model)
-            except ValueError as exc:
-                raise HongguoPluginError("video_model JSON 无效") from exc
-        if not isinstance(raw_model, Mapping) or not raw_model:
-            last_err = HongguoPluginError("video_model 为空")
-            continue
-        return dict(raw_model)
-    if last_err is None:
-        last_err = HongguoPluginError("video_model 为空")
-    raise last_err
-
-def _video_model_legacy(video_id: str) -> dict[str, Any]:
-    """六神签名取 video_model。服务端限制: 每对注册设备号只能签一次,
-    每次尝试先注册新号, 设备号用过或注册失败都不会退回随机号。"""
-    payload = {
-        "biz_param": {
-            "detail_page_version": 0,
-            "device_level": 3,
-            "disable_digg_stat": False,
-            "need_all_video_definition": True,
-            "need_mp4_align": False,
-            "use_os_player": False,
-            "use_server_dns": False,
-            "video_platform": 1024,
-        },
-        "mixed_video_id_map": {"1004": [video_id]},
-    }
-    request_headers = {
-        "User-Agent": APP_UA,
-        "Accept": "application/json; charset=utf-8,application/x-protobuf",
-        "Content-Type": "application/json; charset=UTF-8",
-        "x-xs-from-web": "0",
-        "x-ss-req-ticket": str(int(time.time() * 1000)),
-        "x-tt-request-tag": "t=0;n=0",
-        "sdk-version": "2",
-        "passport-sdk-version": "50561",
-        "x-vc-bdturing-sdk-version": "3.7.2.cn",
-    }
-    body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
-    last_err: Any = None
-    for attempt in range(2):
-        device_id, install_id = _register_devices()
-        devices = _device_config({"device_id": device_id, "install_id": install_id})
-        params = {
-            "iid": install_id,
-            "device_id": device_id,
-            "ac": "wifi",
-            "channel": "update_64",
-            "aid": "8662",
-            "app_name": "novelread",
-            "version_code": "71332",
-            "version_name": "7.1.3.32",
-            "device_platform": "android",
-            "os": "android",
-            "ssmix": "a",
-            "device_type": "25053RT47C",
-            "device_brand": "Redmi",
-            "language": "zh",
-            "os_api": "36",
-            "os_version": "16",
-            "manifest_version_code": "71332",
-            "resolution": "1280*2772",
-            "dpi": "520",
-            "update_version_code": "71332",
-            "host_abi": "arm64-v8a",
-            "dragon_device_type": "phone",
-            "pv_player": "71332",
-            "compliance_status": "0",
-            "need_personal_recommend": "1",
-            "player_so_load": "1",
-            "is_android_pad_screen": "0",
-        }
-        signed_headers, signed_url = _core_sixgod(
-            VIDEO_URL, params, devices, payload, request_headers
-        )
-        response_data = None
-        try:
-            response = _gpost(signed_url, data=body, headers=signed_headers, timeout=30)
-            response_data = _json_response(response)
-        except Exception as e:
-            last_err = e
-        data = response_data.get("data") if isinstance(response_data, Mapping) else None
-        entry = None
-        if isinstance(data, Mapping):
-            entry = data.get(video_id)
-            if entry is None:
-                for value in data.values():
-                    if isinstance(value, Mapping):
-                        entry = value
-                        break
-                    if isinstance(value, list) and value and isinstance(value[0], Mapping):
-                        entry = value[0]
-                        break
-            if not isinstance(entry, Mapping):
-                entry = data
-        raw_model = entry.get("video_model") if isinstance(entry, Mapping) else None
-        if raw_model is None and isinstance(data, Mapping):
-            raw_model = data.get("video_model")
-        if isinstance(raw_model, str):
-            try:
-                raw_model = json.loads(raw_model)
-            except ValueError:
-                raw_model = None
-        if isinstance(raw_model, Mapping) and raw_model:
-            return dict(raw_model)
-        if last_err is None:
-            last_err = HongguoPluginError("上游返回里没有 video_model")
-        time.sleep(0.3)
-    raise HongguoPluginError("video_model 为空 (2 轮注册签名后仍无): %s" % (last_err,))
-
 def _video_model(video_id: str) -> dict[str, Any]:
-    """取 video_model: argus 官方签名优先 (设备号可复用, 4 主机轮换),
-    空模型时换设备号重试一次; 仍失败退六神签名 (每次注册新号)。"""
+    """取 video_model: V5 签名 (新播放器接口 multi_video_model/player/v1)。"""
     last_err: Any = None
     for _ in range(2):
         devices = _working_device_pair()
@@ -3956,20 +4265,63 @@ def _video_model(video_id: str) -> dict[str, Any]:
                 device_id, install_id = _fresh_devices()
             devices = {"device_id": device_id, "install_id": install_id}
         try:
-            model = _video_model_official(video_id, devices)
+            model = _video_model_v5(video_id, devices)
+            _store_device_pair(devices)
+            return model
         except Exception as err:
             last_err = err
             if not _is_empty_model_error(err):
                 break
             _rotate_device_pair()
             continue
-        _store_device_pair(devices)
-        return model
+    raise HongguoPluginError("video_model 为空 (V5 签名失败): %s" % (last_err,))
+
+
+def _video_model_v5(video_id: str, devices: Mapping[str, Any]) -> dict[str, Any]:
+    """V5 签名取 video_model (新播放器接口)。"""
+    cfg = _device_config(devices)
+    payload = _fetch_app_media_payload(video_id)
+    body = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+    body = gzip.compress(body)  # V5 签名要求 gzip 压缩的 body
+    query = _playback_query(cfg["device_id"], cfg["install_id"])
+    now_ms = int(time.time() * 1000)
+    url, headers = _sign_playback_v5(_HG_PLAYBACK_HOST + _HG_PLAYBACK_PATH, query, body, now_ms)
+    headers["User-Agent"] = _HG_PLAYBACK_UA
+    headers["Accept"] = "application/json"
     try:
-        return _video_model_legacy(video_id)
-    except Exception:
-        raise HongguoPluginError(
-            "video_model 为空 (argus 与六神签名均失败): %s" % (last_err,))
+        response = _gpost(url, data=body, headers=headers, timeout=15)
+        response.raise_for_status()
+        root = _json_response(response)
+    except Exception as err:
+        raise HongguoPluginError("V5 video_model 请求失败: %s" % err) from err
+    code = root.get("code", root.get("Code", 0))
+    try:
+        code_int = int(code or 0)
+    except (TypeError, ValueError):
+        code_int = -1
+    if code_int != 0:
+        raise HongguoPluginError("V5 code %s" % code)
+    data = root.get("data") or {}
+    if not isinstance(data, Mapping):
+        raise HongguoPluginError("V5 video_model 为空")
+    entry = data.get(str(video_id))
+    if entry is None and data:
+        entry = list(data.values())[0]
+    if not isinstance(entry, Mapping):
+        raise HongguoPluginError("V5 video_model 条目无效")
+    raw_model = entry.get("video_model")
+    if isinstance(raw_model, str):
+        # 可能是 base64 编码，先尝试解码
+        decoded = _decode_base64_text(raw_model)
+        if decoded is not None and decoded != "":
+            raw_model = decoded
+        try:
+            raw_model = json.loads(raw_model)
+        except ValueError:
+            raw_model = None
+    if not isinstance(raw_model, Mapping) or not raw_model:
+        raise HongguoPluginError("V5 video_model 为空")
+    return dict(raw_model)
 
 def _video_list_from_model(model: Mapping[str, Any]) -> Any:
     for key in ("video_list", "dynamic_video_list"):
@@ -4009,6 +4361,12 @@ def _select_quality(video_list: Any, wanted: str = "1080") -> tuple[str, dict[st
                 result.extend(rows_from(item, hinted_quality))
             return result
         if not isinstance(value, Mapping):
+            return []
+        # 过滤 bytevc2 编码 (对应 JS selectAppMedia 的过滤逻辑)
+        meta = value.get("video_meta", {})
+        codec = str(meta.get("codec_type", "")).lower()
+        gear_key = str(value.get("gear_des_key", "")).lower()
+        if codec == "bytevc2" or "bytevc2" in gear_key:
             return []
         if any(
             key in value
