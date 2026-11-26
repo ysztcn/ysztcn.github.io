@@ -22,8 +22,13 @@ KEY = 'yingtan4k'
 HOST = 'http://cms.lyyytv.cn'
 CMS_KEY = 'wP5bvxoc3yv7FoBQENFZuAF0EUYr4LTy'
 
-# 解析接口（fys.lyyytv.cn；parsesId=3/5/7 已失效，当前可用 6）
-PARSE_API = 'http://fys.lyyytv.cn/api/index?parsesId=6&appid=10001&videoUrl='
+# 解析接口（fys.lyyytv.cn）：parsesId=8 解析站点自有云盘源，6/7 解析第三方官网页
+PARSE_BASE = 'http://fys.lyyytv.cn/api/index'
+PARSE_APPID = '10001'
+PARSE_IDS_SITE = (8,)
+PARSE_IDS_THIRD = (6, 7)
+# 第三方官方平台：走 parsesId=6/7 解析，失败才交壳内解析
+THIRD_PARTY_HOSTS = ('iqiyi.com', 'youku.com', 'bilibili.com', 'qq.com', 'mgtv.com')
 HEADERS = {'User-Agent': 'okhttp/4.12.0'}
 # 解析请求/回源头：对齐 JS 的 PH，避免 gzip 花屏
 PARSE_HEADERS = {'User-Agent': 'okhttp/4.12.0', 'Accept-Encoding': 'identity'}
@@ -250,22 +255,24 @@ def resolve_parse(body):
     return candidate
 
 
-def parse_url(raw):
-    """对齐 JS play 内部：把原始地址拼到解析基址后请求，解出真实 URL。"""
+def parse_url(raw, parse_ids):
+    """把原始地址拼到解析接口后请求，逐个通道尝试解出真实 URL。"""
     if not raw:
         return ''
-    target = PARSE_API + urllib.parse.quote(raw, safe="!'()*")
-    for rnd in range(PARSE_ROUNDS):
-        if rnd > 0:
-            time.sleep(rnd * PARSE_BACKOFF)
-        try:
-            rsp = requests.get(target, headers=PARSE_HEADERS, timeout=30)
-            if rsp.status_code == 200 and rsp.text:
-                resolved = resolve_parse(rsp.text)
-                if resolved and resolved.startswith('http'):
-                    return resolved
-        except Exception:
-            pass
+    encoded = urllib.parse.quote(raw, safe="!'()*")
+    for parse_id in parse_ids:
+        target = '%s?parsesId=%d&appid=%s&videoUrl=%s' % (PARSE_BASE, parse_id, PARSE_APPID, encoded)
+        for rnd in range(PARSE_ROUNDS):
+            if rnd > 0:
+                time.sleep(rnd * PARSE_BACKOFF)
+            try:
+                rsp = requests.get(target, headers=PARSE_HEADERS, timeout=30)
+                if rsp.status_code == 200 and rsp.text:
+                    resolved = resolve_parse(rsp.text)
+                    if resolved.startswith('http'):
+                        return resolved
+            except Exception:
+                pass
     return ''
 
 
@@ -366,6 +373,18 @@ def category(tid, pg, extend):
     return paginated(cms('video', params), page)
 
 
+def is_third_party_host(host):
+    host = text(host).lower()
+    return bool(host) and any(host == h or host.endswith('.' + h) for h in THIRD_PARTY_HOSTS)
+
+
+def is_third_party_url(value):
+    """判断是否为第三方官方平台页（爱奇艺/优酷/B站/腾讯/芒果）"""
+    if not is_http_url(value):
+        return False
+    return is_third_party_host(urllib.parse.urlparse(text(value)).hostname or '')
+
+
 def playlist(value):
     parts = []
     for entry in text(value).split('#'):
@@ -374,6 +393,21 @@ def playlist(value):
             continue
         parts.append('%s$%s' % (text(entry[:sep]), decrypt_lvdou(entry[sep + 1:])))
     return '#'.join(parts)
+
+
+def playlist_hosts(value):
+    hosts = []
+    for entry in text(value).split('#'):
+        sep = entry.find('$')
+        if sep <= 0:
+            continue
+        try:
+            host = (urllib.parse.urlparse(text(entry[sep + 1:])).hostname or '').lower()
+        except ValueError:
+            continue
+        if host:
+            hosts.append(host)
+    return hosts
 
 
 def detail(ids):
@@ -402,12 +436,18 @@ def detail(ids):
         for index, source in enumerate(sources):
             if not isinstance(source, dict):
                 continue
-            url = playlist(source.get('url'))
-            if not url:
+            parsed = playlist(source.get('url'))
+            if not parsed:
                 continue
             name = text(source.get('name')) or text(source.get('code')) or '线路%d' % (index + 1)
-            froms.append(re.sub(r'[$#]', ' ', name))
-            urls.append(url)
+            code = text(source.get('code'))
+            hosts = playlist_hosts(parsed)
+            # 第三方官方平台用 code 作 flag，便于壳内解析按名称匹配（qq/qiyi/youku/bilibili）
+            if hosts and all(is_third_party_host(h) for h in hosts):
+                froms.append(re.sub(r'[$#]', ' ', code or name))
+            else:
+                froms.append(re.sub(r'[$#]', ' ', name))
+            urls.append(parsed)
         vod['vod_play_from'] = '$$$'.join(froms)
         vod['vod_play_url'] = '$$$'.join(urls)
         lst.append(vod)
@@ -429,7 +469,7 @@ def search(key, pg):
 
 
 def play(play_id):
-    """对齐 JS play：无条件走解析接口，解出真实地址再交播放器。"""
+    """自有云盘源用 parsesId=8，第三方官网页用 6/7；解析失败才交壳内解析。"""
     original = decrypt_lvdou(play_id)
     if not original:
         return {'parse': 0, 'url': '', 'header': dict(PARSE_HEADERS)}
@@ -440,20 +480,28 @@ def play(play_id):
         if decrypted:
             original = decrypted
 
-    # 解析结果缓存
-    now = time.time()
-    cached = _play_cache.get(original)
-    if cached and cached[0] > now:
-        return {'parse': 0, 'url': cached[1], 'header': dict(PARSE_HEADERS)}
+    third_party = is_third_party_url(original)
 
-    resolved = parse_url(original)
+    # 解析结果缓存（第三方解析地址为一次性 token，不能复用）
+    now = time.time()
+    if not third_party:
+        cached = _play_cache.get(original)
+        if cached and cached[0] > now:
+            return {'parse': 0, 'url': cached[1], 'header': dict(PARSE_HEADERS)}
+
+    resolved = parse_url(original, PARSE_IDS_THIRD if third_party else PARSE_IDS_SITE)
     # 解析服务不认直链时，直链本身可播就原样返回
     if not resolved and is_media_url(original):
         resolved = original
     if resolved:
-        _play_cache[original] = (now + PLAY_CACHE_TTL, resolved)
+        if not third_party:
+            _play_cache[original] = (now + PLAY_CACHE_TTL, resolved)
+        return {'parse': 0, 'url': resolved, 'header': dict(PARSE_HEADERS)}
+    if third_party:
+        # 站点解析失败时退回壳内解析
+        return {'parse': 1, 'url': original, 'header': dict(PARSE_HEADERS)}
 
-    return {'parse': 0, 'url': resolved or '', 'header': dict(PARSE_HEADERS)}
+    return {'parse': 0, 'url': '', 'header': dict(PARSE_HEADERS)}
 
 
 class Spider(Spider):

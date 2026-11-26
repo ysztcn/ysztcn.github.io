@@ -1,6 +1,11 @@
+import base64
+import hashlib
+import hmac
 import json
 import re
-import sys
+import time
+from email.utils import parsedate_to_datetime
+from typing import Optional
 from urllib.parse import quote
 
 import requests
@@ -11,7 +16,7 @@ from base.spider import Spider
 
 class Spider(Spider):
   siteKey = "4kvm"
-  baseUrl = "https://www.4kvms.org/"
+  baseUrl = "https://www.4kvms.org"
 
   _headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0",
@@ -26,16 +31,10 @@ class Spider(Spider):
       self._session.headers.update(self._headers)
     return self._session
 
-  def _log(self, msg: str):
-    print(f"[4kvm-debug] {msg}", flush=True)
-
-  _workerUrl = "https://4kvm-play.yszt.dpdns.org/api/play"
-
   categories = {
     "1": ("/movie", "电影"),
     "2": ("/tv", "电视剧"),
     "3": ("/anime", "动漫"),
-    "4": ("/variety", "综艺"),
   }
 
   _areaOptions = [
@@ -126,26 +125,24 @@ class Spider(Spider):
 
   def init(self, extend: str = "") -> None:
     self._filterYears = None
+    self._serverOffsetMs = None
+    self._session = None
     if extend:
       try:
         data = json.loads(extend)
+      except json.JSONDecodeError as e:
+        self.log(f"4kvm ext 不是合法 JSON，忽略: {e}")
+      else:
         self.baseUrl = data.get("baseUrl", self.baseUrl)
-      except json.JSONDecodeError:
-        pass
+    self.baseUrl = self.baseUrl.rstrip("/")
+    self._headers = dict(self._headers, Referer=f"{self.baseUrl}/")
 
-  def _get(self, url: str, params: dict = None) -> requests.Response:
+  def _get(self, url: str, params: Optional[dict] = None) -> requests.Response:
     ses = self._get_session()
     return ses.get(url, params=params, timeout=15)
 
   def _parse_list(self, html: str) -> list:
-    try:
-      doc = pq(html.encode('utf-8'))
-    except Exception as e:
-      self._log(f"parse failed: {e}, html(len={len(html)}) repr={repr(html[:200])}")
-      try:
-        doc = pq(html)
-      except Exception:
-        return []
+    doc = pq(html)
     result = []
     for card in doc(".movie-card").items():
       vodId = card.attr("data-vod-id")
@@ -155,11 +152,11 @@ class Spider(Spider):
       img = card("img.lazy")
       pic = img.attr("data-src") or img.attr("src") or ""
       remark = ""
-      ep_span = card("span.absolute.bottom-0, .aspect-\\[2\\/3\\] > span")
-      if ep_span:
-        ep_text = ep_span.text().strip()
-        if ep_text and ("集" in ep_text or "更新" in ep_text):
-          remark = ep_text
+      epSpan = card("span.absolute.bottom-0, .aspect-\\[2\\/3\\] > span")
+      if epSpan:
+        epText = epSpan.text().strip()
+        if epText and ("集" in epText or "更新" in epText):
+          remark = epText
       result.append({
         "vod_id": vodId,
         "vod_name": title,
@@ -176,46 +173,39 @@ class Spider(Spider):
     links = doc("a.episode-link").items()
     if not doc("a.episode-link"):
       links = doc("a[href^='/play/'][dataid]").items()
-    for ep_link in links:
-      href = ep_link.attr("href")
-      dataid = ep_link.attr("dataid") or ""
+    for epLink in links:
+      href = epLink.attr("href")
+      dataid = epLink.attr("dataid") or ""
       if not href or not dataid:
         continue
       epVodId = href.split("/play/")[-1].split("?")[0]
       if not epVodId or epVodId in seenIds:
         continue
       seenIds.add(epVodId)
-      ep_name = ep_link.text().strip()
-      if not ep_name or len(ep_name) > 5:
-        ep_name = f"第{len(episodes)+1}集"
-      episodes.append(f"{ep_name}$4kvm://{dataid}|{userlink}/{href}")
+      epName = epLink.text().strip()
+      if not epName or len(epName) > 5:
+        epName = f"第{len(episodes)+1}集"
+      episodes.append(f"{epName}$4kvm://{dataid}|{userlink}{href}")
     return episodes
 
   def _scrapeFilterOptions(self) -> list:
-    if hasattr(self, '_filterYears') and self._filterYears is not None:
+    if self._filterYears is not None:
       return self._filterYears
-    try:
-      html = self._get(f"{self.baseUrl}/filter?classify=1").text
-      doc = pq(html)
-      result = []
-      for a in doc("a[href*='years=']").items():
-        href = a.attr("href")
-        text = a.text().strip()
-        if not href or not text:
-          continue
-        m = re.search(r"years=(\d+)", href)
-        if m and text.isdigit():
-          result.append({"n": text, "v": m.group(1)})
-      if result:
-        result.insert(0, {"n": "--", "v": ""})
-        self._filterYears = result
-        return self._filterYears
-    except Exception:
-      pass
-    self._filterYears = [{"n": "--", "v": ""}]
+    html = self._get(f"{self.baseUrl}/filter?classify=1").text
+    doc = pq(html)
+    result = [{"n": "--", "v": ""}]
+    for a in doc("a[href*='years=']").items():
+      href = a.attr("href")
+      text = a.text().strip()
+      if not href or not text.isdigit():
+        continue
+      m = re.search(r"years=(\d+)", href)
+      if m:
+        result.append({"n": text, "v": m.group(1)})
+    self._filterYears = result
     return self._filterYears
 
-  def homeContent(self, filter: bool) -> str:
+  def homeContent(self, filter: bool) -> dict:
     classes = []
     for tid, (path, name) in self.categories.items():
       classes.append({
@@ -240,12 +230,12 @@ class Spider(Spider):
       ]
     return filters
 
-  def homeVideoContent(self) -> str:
+  def homeVideoContent(self) -> dict:
     html = self._get(self.baseUrl).text
     result = self._parse_list(html)
     return {"list": result}
 
-  def categoryContent(self, tid: str, pg: str, filter: bool, extend: dict) -> str:
+  def categoryContent(self, tid: str, pg: str, filter: bool, extend: dict) -> dict:
     if tid not in self.categories:
       return {"list": [], "pagecount": 0}
     query = {"classify": tid}
@@ -261,24 +251,25 @@ class Spider(Spider):
     if pg and pg != "1":
       query["page"] = pg
     resp = self._get(f"{self.baseUrl}/filter", params=query)
-    self._log(f"url={resp.url} status={resp.status_code} len={len(resp.text)} query={query}")
-    if not resp.text or not resp.text.strip():
-      self._log(f"empty body! headers={dict(resp.headers)}")
+    if not resp.text.strip():
+      self.log(f"4kvm 分类页返回空内容: {resp.url}")
     html = resp.text
     result = self._parse_list(html)
-    self._log(f"parsed {len(result)} items for pg={pg}")
-    return {"list": result, "pagecount": 999}
+    return {"list": result, "pagecount": self._parse_pagecount(html)}
 
-  def detailContent(self, ids: list) -> str:
+  @staticmethod
+  def _parse_pagecount(html: str) -> int:
+    # 分页控件里带 page=N 的链接，最大 N 即总页数
+    pages = [int(p) for p in re.findall(r"page=(\d+)", html)]
+    return max(pages) if pages else 1
+
+  def detailContent(self, ids: list) -> dict:
     if not ids:
       return {"list": []}
     vodId = ids[0]
     url = f"{self.baseUrl}/play/{vodId}"
     html = self._get(url).text
-    try:
-      doc = pq(html)
-    except Exception:
-      return {"list": []}
+    doc = pq(html)
 
     title = ""
     h1 = doc("h1").eq(0)
@@ -295,10 +286,6 @@ class Spider(Spider):
 
     year = ""
     score = ""
-    area = ""
-    typeNames = ""
-    actor = ""
-    director = ""
 
     for kw in kws:
       if re.match(r"^\d{4}$", kw):
@@ -310,33 +297,24 @@ class Spider(Spider):
         score = text
         break
 
-    info_patterns = [
-      ("导演", "director"),
-      ("主演", "actor"),
-      ("类型", "typeNames"),
-      ("地区", "area"),
-    ]
-    for label, field in info_patterns:
-      pattern = re.compile(
-        r'<div[^>]*>\s*' + re.escape(label) + r'\s*</div>\s*<div[^>]*>\s*([^<]+?)\s*</div>',
-        re.IGNORECASE
-      )
-      m = pattern.search(html)
-      if m:
-        val = m.group(1).strip()
-        if field == "typeNames":
-          typeNames = val
-        elif field == "area":
-          area = val
-        elif field == "director":
-          director = val
-        elif field == "actor":
-          actor = val
+    # 详情信息是「标签 div + 值 div」成对的网格，用相邻节点取值
+    infoMap = {}
+    for labelNode in doc("div.text-gray-500").items():
+      label = labelNode.text().strip()
+      if label in ("导演", "主演", "类型", "地区"):
+        valueNode = labelNode.next(".text-gray-300")
+        if valueNode:
+          infoMap[label] = valueNode.text().strip()
+
+    director = infoMap.get("导演", "")
+    actor = infoMap.get("主演", "")
+    typeNames = infoMap.get("类型", "")
+    area = infoMap.get("地区", "")
 
     userlink = ""
-    m_ul = re.search(r"userlink:\s*'([^']+)'", html)
-    if m_ul:
-      userlink = m_ul.group(1)
+    mUl = re.search(r"userlink:\s*'([^']+)'", html)
+    if mUl:
+      userlink = mUl.group(1)
 
     episodes = self._extract_episodes(doc, userlink)
 
@@ -357,17 +335,15 @@ class Spider(Spider):
       vod["vod_play_url"] = "#".join(episodes)
     return {"list": [vod]}
 
-  def searchContent(self, key: str, quick: bool, pg: str = "1") -> str:
+  def searchContent(self, key: str, quick: bool, pg: str = "1") -> dict:
+    # 站点搜索不分页，一次返回全部结果
     html = self._get(f"{self.baseUrl}/search?q={quote(key)}").text
     result = self._parse_search(html)
-    return {"list": result, "pagecount": 999}
+    return {"list": result, "pagecount": 1}
 
   def _parse_search(self, html: str) -> list:
+    doc = pq(html)
     result = []
-    try:
-      doc = pq(html.encode('utf-8'))
-    except Exception:
-      return result
     for card in doc("div.group.relative").items():
       link = card("a[href^='/play/']")
       href = link.attr("href")
@@ -388,33 +364,60 @@ class Spider(Spider):
       })
     return result
 
-  def playerContent(self, flag: str, id: str, vipFlags: list) -> str:
+  # 站点 WASM 内的 XOR 密钥，算法见 README「4kvm 爬虫特殊说明」
+  _signKey = b"nbmovie2024secretkey"
+
+  def _server_time_ms(self) -> int:
+    # /video/play 的 t 只允许与服务端时间相差约 30 秒，用响应头 Date 校正设备时钟
+    if self._serverOffsetMs is None:
+      offset = 0
+      try:
+        date = self._get(self.baseUrl).headers.get("Date")
+        if date:
+          offset = int(parsedate_to_datetime(date).timestamp() * 1000 - time.time() * 1000)
+        else:
+          self.log("4kvm 响应头缺少 Date，按本地时间签名")
+      except Exception as e:
+        self.log(f"4kvm 获取服务器时间失败，按本地时间签名: {e}")
+      self._serverOffsetMs = offset
+    return int(time.time() * 1000) + self._serverOffsetMs
+
+  def _build_play_url(self, dataid: str, vod: str, userlink: str, quality: str = "1080") -> str:
+    ts = self._server_time_ms()
+    sign = hmac.new(vod.encode(), f"{dataid}:{ts}:{vod}".encode(), hashlib.sha256).hexdigest()[:32]
+    key = bytes(b ^ self._signKey[i % len(self._signKey)] for i, b in enumerate(userlink.encode()))
+    k = base64.urlsafe_b64encode(key).decode()
+    return f"{self.baseUrl}/video/play?p={dataid}&v={vod}&q={quality}&s={sign}&t={ts}&k={k}"
+
+  def playerContent(self, flag: str, id: str, vipFlags: list) -> dict:
     if not id:
       return {"parse": 0, "url": ""}
-    if id.startswith("4kvm://"):
-      m = re.match(r"4kvm://([^|]*)\|([^/]*)(/.*)", id)
-      if not m:
-        return {"parse": 0, "url": ""}
-      dataid, userlink, path = m.group(1), m.group(2), m.group(3)
-      if not dataid:
-        return {"parse": 1, "url": f"{self.baseUrl}{path}", "header": self._headers}
-      vod = path.split("/play/")[-1].split("?")[0] if "/play/" in path else path
-      params = {
-        "dataid": dataid,
-        "vod": vod,
-        "userlink": userlink,
-      }
+    # 兼容 TVBox 可能传入完整的 "剧集名$4kvm://..." 格式，使用 search 而非 match
+    m = re.search(r"4kvm://([^|]*)\|(.*?)(/play/.*)", id)
+    if not m:
+      # 不是 4kvm 格式，按普通播放链接处理
+      vid = id[len("/play/"):] if id.startswith("/play/") else id
+      return {"parse": 1, "url": f"{self.baseUrl}/play/{vid}", "header": self._headers}
+    dataid, userlink, path = m.group(1), m.group(2), m.group(3)
+    vod = path.split("/play/")[-1].split("?")[0]
+    if dataid:
+      # 播放接口按请求方 IP 签发地址，必须在设备本地签名，Worker 出口 IP 不同会 403
       try:
-        resp = requests.get(self._workerUrl, params=params, timeout=15)
-        body = resp.json()
-        if body.get("code") == 200 and body.get("data", {}).get("quality_urls"):
-          unlocked = [q for q in body["data"]["quality_urls"] if not q.get("locked")]
-          valid = [q for q in (unlocked or body["data"]["quality_urls"]) if str(q.get("url", "")).startswith("http")]
-          if valid:
-            best = max(valid, key=lambda q: q.get("bitrate", 0))
-            return {"parse": 0, "url": best["url"]}
-      except Exception:
-        pass
-      return {"parse": 1, "url": f"{self.baseUrl}{path}", "header": self._headers}
-    vid = id[len("/play/"):] if id.startswith("/play/") else id
-    return {"parse": 1, "url": f"{self.baseUrl}/play/{vid}", "header": self._headers}
+        resp = self._get(self._build_play_url(dataid, vod, userlink))
+        if resp.status_code == 200:
+          data = resp.json().get("data") or {}
+          urls = [
+            q for q in (data.get("quality_urls") or [])
+            if not q.get("locked") and str(q.get("url", "")).startswith("http")
+          ]
+          if urls:
+            best = max(urls, key=lambda q: q.get("bitrate", 0))
+            # 播放请求不带 Referer：blbtgg 系 CDN 带 Referer 直接 403
+            return {"parse": 0, "url": best["url"], "header": {"User-Agent": self._headers["User-Agent"]}}
+          self.log(f"4kvm 播放接口无可用地址: {resp.text[:200]}")
+        else:
+          self.log(f"4kvm 播放接口 {resp.status_code}: {resp.text[:200]}")
+      except Exception as e:
+        self.log(f"4kvm 播放接口请求失败: {e}")
+    # 签名失败时退回壳内 WebView，由页面 JS 自行签名播放
+    return {"parse": 1, "url": f"{self.baseUrl}{path}", "header": self._headers}

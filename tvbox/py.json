@@ -25,15 +25,6 @@
 			"ext": ""
 		},
 		{
-			"key": "shuju",
-			"name": "📚️┃自建┃学习",
-			"type": 3,
-			"searchable": 0,
-			"quickSearch": 0,
-			"api": "./py/shuju.py",
-			"ext": ""
-		},
-		{
 			"key": "bilibili",
 			"name": "🐮️┃BiLiBiLi",
 			"type": 3,
